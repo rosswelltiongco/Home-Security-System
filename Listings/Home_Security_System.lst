@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:42:46 PAGE 1   
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:49:43 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE HOME_SECURITY_SYSTEM
@@ -44,247 +44,281 @@ line level    source
   34          
   35          
   36          
-  37          
-  38          
-  39          //Function Prototypes
-  40          void init_lcd();//initialize LCD
-  41          void write_to_lcd(unsigned char value, bit mode);//write data or command
-  42          void MSDelay(unsigned int itime);//delay 1 ms
-  43          void lcdready(void);//check if lcd is ready to write to
-  44          void display(int time, int status);
-  45          void updateTimer(int time);
-  46          void updateLCD();
-  47          void updateStatus();
-  48          void turnOnLaser();
-  49          void turnOffLaser();
-  50          void countDownTimer();
-  51          void updateTimerLEDs();
-  52          void turnOnAlarm();
-  53          void turnOffAlarm();
-  54          void flashIntruder();
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:42:46 PAGE 2   
+  37          //State Functions
+  38          void disarmedState();
+  39          void updateTimerState();
+  40          void armedState();
+  41          void countdownState();
+  42          void intruderState();
+  43          
+  44          //Function Prototypes
+  45          void init_lcd();//initialize LCD
+  46          void write_to_lcd(unsigned char value, bit mode);//write data or command
+  47          void MSDelay(unsigned int itime);//delay 1 ms
+  48          void lcdready(void);//check if lcd is ready to write to
+  49          void display(int time, int status);
+  50          void updateTimer(int time);
+  51          void updateLCD();
+  52          void updateStatus();
+  53          void turnOnLaser();
+  54          void turnOffLaser();
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:49:43 PAGE 2   
 
-  55          void soundAlarm();
-  56          void resetTimer();
-  57          
-  58          
-  59          /**************************************************************/
-  60          void main(){
-  61   1          while(1){
-  62   2            display(60, 0);
-  63   2          }
-  64   1          
-  65   1        
-  66   1        
-  67   1      
-  68   1      
-  69   1      }
-  70          /**************************************************************/
-  71          
-  72          
-  73          ////////////////////////////////////////////////////////////////
-  74          //               LCD  Helper Functions                        //
-  75          ////////////////////////////////////////////////////////////////
-  76          
-  77          void display(int time, int status){
-  78   1        unsigned int count;
-  79   1        
-  80   1        //Initializing every decimal place to 0
-  81   1        char msb= 0x39;
-  82   1        char lsb = 0x39;
-  83   1        
-  84   1        unsigned char code timer[]="Timer:NA seconds";
-  85   1        unsigned char code armed[]="Armed";
-  86   1        unsigned char code disarmed[]="Disarmed";
-  87   1        unsigned char code intruder[]="Intruder!";
-  88   1        unsigned char t,a,d,i =0;
-  89   1        
-  90   1        init_lcd();                                                                                       
-  91   1        
-  92   1        //Writing first line
-  93   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
-  94   1        while (timer[t]!='\0') 
-  95   1         write_to_lcd(timer[i++],LCD_DATA);
-  96   1        
-  97   1        //Writing second line
-  98   1        write_to_lcd(0xC0,COMMAND); //Move cursor to start of second line
-  99   1        
- 100   1        if (status == 0)
- 101   1        { 
- 102   2          while (armed[a]!='\0') 
- 103   2           write_to_lcd(armed[a++],LCD_DATA);
- 104   2        }
- 105   1        else if (status == 0)
- 106   1        { 
- 107   2          while (disarmed[d]!='\0') 
- 108   2           write_to_lcd(disarmed[d++],LCD_DATA);
- 109   2        }
- 110   1        else
- 111   1        { 
- 112   2          while (intruder[i]!='\0') 
- 113   2           write_to_lcd(intruder[i++],LCD_DATA);
- 114   2        }
- 115   1        
- 116   1        for (count = time; count >= 0; count--){    
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:42:46 PAGE 3   
+  55          void countDownTimer();
+  56          void updateTimerLEDs();
+  57          void turnOnAlarm();
+  58          void turnOffAlarm();
+  59          void flashIntruder();
+  60          void soundAlarm();
+  61          void resetTimer();
+  62          
+  63          
+  64          /**************************************************************/
+  65          void main(){
+  66   1          while(1){
+  67   2            case(){
+*** ERROR C141 IN LINE 67 OF Home_Security_System.c: syntax error near ')'
+  68   3                
+  69   3              disarmedState();
+  70   3              updateTimerState();
+  71   3              armedState();
+  72   3              countdownState();
+  73   3              intruderState();
+  74   3            }
+  75   2          }
+  76   1          
+  77   1        
+  78   1        
+  79   1      
+  80   1      
+  81   1      }
+  82          /**************************************************************/
+  83          
+  84          
+  85          void disarmedState()
+  86          {
+  87   1      }
+  88          void updateTimerState()
+  89          {
+  90   1      }
+  91          void armedState()
+  92          {
+  93   1      }
+  94          void countdownState()
+  95          {
+  96   1      }
+  97          void intruderState()
+  98          {
+  99   1      }
+ 100          
+ 101          
+ 102          
+ 103          
+ 104          ////////////////////////////////////////////////////////////////
+ 105          //               LCD  Helper Functions                        //
+ 106          ////////////////////////////////////////////////////////////////
+ 107          
+ 108          void display(int time, int status){
+ 109   1        unsigned int count;
+ 110   1        
+ 111   1        //Initializing every decimal place to 0
+ 112   1        char msb= 0x39;
+ 113   1        char lsb = 0x39;
+ 114   1        
+ 115   1        unsigned char code timer[]="Timer:NA seconds";
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:49:43 PAGE 3   
 
- 117   2          if (lsb < 0x30){
- 118   3            lsb = 0x39;
- 119   3            msb--;
- 120   3            if (msb < 0x30){
- 121   4              msb = 0x39;
- 122   4            }
- 123   3          }
- 124   2          
- 125   2          write_to_lcd(0x86,COMMAND); //Write to sceond line
- 126   2          write_to_lcd(msb,LCD_DATA); //Writes left to right
- 127   2          write_to_lcd(lsb,LCD_DATA);
- 128   2          
- 129   2          lsb--; //Deccrementing least significant bit
- 130   2          
- 131   2          MSDelay(100); //Replace with internal timer delay    
- 132   2        }
- 133   1      }
- 134          
- 135          void updateTimer(int time){
- 136   1        unsigned int count;
- 137   1        
- 138   1        //Initializing every decimal place to 0
- 139   1        char msb= 0x39;
- 140   1        char lsb = 0x39;
- 141   1        
- 142   1        unsigned char code timer[]="Timer:NA seconds";
- 143   1        unsigned char code armed[]="Armed";
- 144   1        unsigned char code disarmed[]="Disarmed";
- 145   1        unsigned char code intruder[]="Intruder!";
- 146   1        unsigned char t,a,d,i =0;
- 147   1        
- 148   1        init_lcd();                                                                                       
- 149   1        
- 150   1        //Writing first line
- 151   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
- 152   1        while (timer[t]!='\0') 
- 153   1         write_to_lcd(timer[i++],LCD_DATA);
- 154   1        
- 155   1        //Writing second line
- 156   1        write_to_lcd(0xC0,COMMAND); //Move cursor to start of second line
- 157   1        
- 158   1        if (status == 0)
-*** ERROR C202 IN LINE 158 OF Home_Security_System.c: 'status': undefined identifier
- 159   1        { 
- 160   2          while (armed[a]!='\0') 
- 161   2           write_to_lcd(armed[a++],LCD_DATA);
- 162   2        }
- 163   1        else if (status == 0)
-*** ERROR C202 IN LINE 163 OF Home_Security_System.c: 'status': undefined identifier
- 164   1        { 
- 165   2          while (disarmed[d]!='\0') 
- 166   2           write_to_lcd(disarmed[d++],LCD_DATA);
- 167   2        }
- 168   1        else
- 169   1        { 
- 170   2          while (intruder[i]!='\0') 
- 171   2           write_to_lcd(intruder[i++],LCD_DATA);
- 172   2        }
- 173   1        
- 174   1        for (count = time; count >= 0; count--){    
- 175   2          if (lsb < 0x30){
- 176   3            lsb = 0x39;
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:42:46 PAGE 4   
+ 116   1        unsigned char code armed[]="Armed";
+ 117   1        unsigned char code disarmed[]="Disarmed";
+ 118   1        unsigned char code intruder[]="Intruder!";
+ 119   1        unsigned char t,a,d,i =0;
+ 120   1        
+ 121   1        init_lcd();                                                                                       
+ 122   1        
+ 123   1        //Writing first line
+ 124   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
+ 125   1        while (timer[t]!='\0') 
+ 126   1         write_to_lcd(timer[i++],LCD_DATA);
+ 127   1        
+ 128   1        //Writing second line
+ 129   1        write_to_lcd(0xC0,COMMAND); //Move cursor to start of second line
+ 130   1        
+ 131   1        if (status == 0)
+ 132   1        { 
+ 133   2          while (armed[a]!='\0') 
+ 134   2           write_to_lcd(armed[a++],LCD_DATA);
+ 135   2        }
+ 136   1        else if (status == 0)
+ 137   1        { 
+ 138   2          while (disarmed[d]!='\0') 
+ 139   2           write_to_lcd(disarmed[d++],LCD_DATA);
+ 140   2        }
+ 141   1        else
+ 142   1        { 
+ 143   2          while (intruder[i]!='\0') 
+ 144   2           write_to_lcd(intruder[i++],LCD_DATA);
+ 145   2        }
+ 146   1        
+ 147   1        for (count = time; count >= 0; count--){    
+ 148   2          if (lsb < 0x30){
+ 149   3            lsb = 0x39;
+ 150   3            msb--;
+ 151   3            if (msb < 0x30){
+ 152   4              msb = 0x39;
+ 153   4            }
+ 154   3          }
+ 155   2          
+ 156   2          write_to_lcd(0x86,COMMAND); //Write to sceond line
+ 157   2          write_to_lcd(msb,LCD_DATA); //Writes left to right
+ 158   2          write_to_lcd(lsb,LCD_DATA);
+ 159   2          
+ 160   2          lsb--; //Deccrementing least significant bit
+ 161   2          
+ 162   2          MSDelay(100); //Replace with internal timer delay    
+ 163   2        }
+ 164   1      }
+ 165          
+ 166          void updateTimer(int time){
+ 167   1        unsigned int count;
+ 168   1        
+ 169   1        //Initializing every decimal place to 0
+ 170   1        char msb= 0x39;
+ 171   1        char lsb = 0x39;
+ 172   1        
+ 173   1        unsigned char code timer[]="Timer:NA seconds";
+ 174   1        unsigned char code armed[]="Armed";
+ 175   1        unsigned char code disarmed[]="Disarmed";
+ 176   1        unsigned char code intruder[]="Intruder!";
+ 177   1        unsigned char t,a,d,i =0;
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:49:43 PAGE 4   
 
- 177   3            msb--;
- 178   3            if (msb < 0x30){
- 179   4              msb = 0x39;
- 180   4            }
- 181   3          }
- 182   2          
- 183   2          write_to_lcd(0x86,COMMAND); //Write to sceond line
- 184   2          write_to_lcd(msb,LCD_DATA); //Writes left to right
- 185   2          write_to_lcd(lsb,LCD_DATA);
- 186   2          
- 187   2          lsb--; //Deccrementing least significant bit
- 188   2          
- 189   2          MSDelay(100); //Replace with internal timer delay    
- 190   2        }
- 191   1      }
- 192          
- 193          
- 194          //setup LCD for required display
- 195          void init_lcd(){
- 196   1        //all instructions here are commands, not data
- 197   1        
- 198   1        write_to_lcd(0x38,COMMAND);
- 199   1      
- 200   1        write_to_lcd(0x0E,COMMAND);
- 201   1        
- 202   1        write_to_lcd(0x06,COMMAND);
- 203   1        //clear display and return cursor to home position
- 204   1        write_to_lcd(0x01,COMMAND);
- 205   1      }
- 206          
- 207          void write_to_lcd(unsigned char value, bit mode){
- 208   1          lcdready();
- 209   1        ldata = value;
- 210   1        rs = mode; //1 for data, 0 for command
- 211   1        rw = 0;
- 212   1        en = 1;
- 213   1        MSDelay(1);
- 214   1        en = 0;
- 215   1      }
- 216          void MSDelay(unsigned int itime){
- 217   1        unsigned i, j;
- 218   1        for(i=0;i<itime;i++)
- 219   1          for(j=0;j<1275;j++);
- 220   1      
- 221   1      }
- 222          void lcdready(){
- 223   1        busy = 1;
- 224   1        en = 1;
- 225   1        rs = 0;//command
- 226   1        rw = 1;//read command
- 227   1        while(busy){
- 228   2          en = 0;
- 229   2          MSDelay(1);
- 230   2          en = 1;
- 231   2        }
- 232   1        en = 0;
- 233   1        rw = 0;
- 234   1      }
- 235          
- 236          void updateLCD()
- 237          {
- 238   1      }
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:42:46 PAGE 5   
+ 178   1        
+ 179   1        init_lcd();                                                                                       
+ 180   1        
+ 181   1        //Writing first line
+ 182   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
+ 183   1        while (timer[t]!='\0') 
+ 184   1         write_to_lcd(timer[i++],LCD_DATA);
+ 185   1        
+ 186   1        //Writing second line
+ 187   1        write_to_lcd(0xC0,COMMAND); //Move cursor to start of second line
+ 188   1        
+ 189   1        if (status == 0)
+*** ERROR C202 IN LINE 189 OF Home_Security_System.c: 'status': undefined identifier
+ 190   1        { 
+ 191   2          while (armed[a]!='\0') 
+ 192   2           write_to_lcd(armed[a++],LCD_DATA);
+ 193   2        }
+ 194   1        else if (status == 0)
+*** ERROR C202 IN LINE 194 OF Home_Security_System.c: 'status': undefined identifier
+ 195   1        { 
+ 196   2          while (disarmed[d]!='\0') 
+ 197   2           write_to_lcd(disarmed[d++],LCD_DATA);
+ 198   2        }
+ 199   1        else
+ 200   1        { 
+ 201   2          while (intruder[i]!='\0') 
+ 202   2           write_to_lcd(intruder[i++],LCD_DATA);
+ 203   2        }
+ 204   1        
+ 205   1        for (count = time; count >= 0; count--){    
+ 206   2          if (lsb < 0x30){
+ 207   3            lsb = 0x39;
+ 208   3            msb--;
+ 209   3            if (msb < 0x30){
+ 210   4              msb = 0x39;
+ 211   4            }
+ 212   3          }
+ 213   2          
+ 214   2          write_to_lcd(0x86,COMMAND); //Write to sceond line
+ 215   2          write_to_lcd(msb,LCD_DATA); //Writes left to right
+ 216   2          write_to_lcd(lsb,LCD_DATA);
+ 217   2          
+ 218   2          lsb--; //Deccrementing least significant bit
+ 219   2          
+ 220   2          MSDelay(100); //Replace with internal timer delay    
+ 221   2        }
+ 222   1      }
+ 223          
+ 224          
+ 225          //setup LCD for required display
+ 226          void init_lcd(){
+ 227   1        //all instructions here are commands, not data
+ 228   1        
+ 229   1        write_to_lcd(0x38,COMMAND);
+ 230   1      
+ 231   1        write_to_lcd(0x0E,COMMAND);
+ 232   1        
+ 233   1        write_to_lcd(0x06,COMMAND);
+ 234   1        //clear display and return cursor to home position
+ 235   1        write_to_lcd(0x01,COMMAND);
+ 236   1      }
+ 237          
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:49:43 PAGE 5   
 
- 239          void updateStatus()
- 240          {
- 241   1      }
- 242          void turnOnLaser()
- 243          {
- 244   1      }
- 245          void turnOffLaser()
- 246          {
- 247   1      }
- 248          void countDownTimer()
- 249          {
- 250   1      }
- 251          void updateTimerLEDs()
- 252          {
- 253   1      }
- 254          void turnOnAlarm()
- 255          {
- 256   1      }
- 257          void turnOffAlarm()
- 258          {
- 259   1      }
- 260          void flashIntruder()
- 261          {
- 262   1      }
- 263          void soundAlarm()
- 264          {
+ 238          void write_to_lcd(unsigned char value, bit mode){
+ 239   1          lcdready();
+ 240   1        ldata = value;
+ 241   1        rs = mode; //1 for data, 0 for command
+ 242   1        rw = 0;
+ 243   1        en = 1;
+ 244   1        MSDelay(1);
+ 245   1        en = 0;
+ 246   1      }
+ 247          void MSDelay(unsigned int itime){
+ 248   1        unsigned i, j;
+ 249   1        for(i=0;i<itime;i++)
+ 250   1          for(j=0;j<1275;j++);
+ 251   1      
+ 252   1      }
+ 253          void lcdready(){
+ 254   1        busy = 1;
+ 255   1        en = 1;
+ 256   1        rs = 0;//command
+ 257   1        rw = 1;//read command
+ 258   1        while(busy){
+ 259   2          en = 0;
+ 260   2          MSDelay(1);
+ 261   2          en = 1;
+ 262   2        }
+ 263   1        en = 0;
+ 264   1        rw = 0;
  265   1      }
- 266          void resetTimer()
- 267          {
- 268   1      }
+ 266          
+ 267          void updateLCD()
+ 268          {
+ 269   1      }
+ 270          void updateStatus()
+ 271          {
+ 272   1      }
+ 273          void turnOnLaser()
+ 274          {
+ 275   1      }
+ 276          void turnOffLaser()
+ 277          {
+ 278   1      }
+ 279          void countDownTimer()
+ 280          {
+ 281   1      }
+ 282          void updateTimerLEDs()
+ 283          {
+ 284   1      }
+ 285          void turnOnAlarm()
+ 286          {
+ 287   1      }
+ 288          void turnOffAlarm()
+ 289          {
+ 290   1      }
+ 291          void flashIntruder()
+ 292          {
+ 293   1      }
+ 294          void soundAlarm()
+ 295          {
+ 296   1      }
+ 297          void resetTimer()
+ 298          {
+ 299   1      }
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 17:49:43 PAGE 6   
 
-C51 COMPILATION COMPLETE.  0 WARNING(S),  2 ERROR(S)
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  3 ERROR(S)

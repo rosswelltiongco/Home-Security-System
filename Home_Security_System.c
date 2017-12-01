@@ -34,7 +34,12 @@ bit dir;
 
 
 
-
+//State Functions
+void disarmedState();
+void updateTimerState();
+void armedState();
+void countdownState();
+void intruderState();
 
 //Function Prototypes
 void init_lcd();//initialize LCD
@@ -59,7 +64,14 @@ void resetTimer();
 /**************************************************************/
 void main(){
 		while(1){
-			display(60, 0);
+			case(){
+					
+				disarmedState();
+				updateTimerState();
+				armedState();
+				countdownState();
+				intruderState();
+			}
 		}
 		
 	
@@ -68,6 +80,25 @@ void main(){
 
 }
 /**************************************************************/
+
+
+void disarmedState()
+{
+}
+void updateTimerState()
+{
+}
+void armedState()
+{
+}
+void countdownState()
+{
+}
+void intruderState()
+{
+}
+
+
 
 
 ////////////////////////////////////////////////////////////////
