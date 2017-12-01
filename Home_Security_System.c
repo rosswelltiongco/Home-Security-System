@@ -75,7 +75,9 @@ void MSDelay(unsigned int itime);//delay 1 ms
 void lcdready(void);//check if lcd is ready to write to
 void updateTimer(int time);
 void updateLCD();
-void updateStatus();
+void displayArmed();
+void displayDisarmed();
+void displayIntruder();
 void turnOnLaser();
 void turnOffLaser();
 void countDownTimer(int num);
@@ -102,13 +104,14 @@ void main(){
 	EX1 = 1;
 	EX0 = 1;
 	
-	
+	countDownTimer(12);
+	displayIntruder();
 		while(1){
-			disarmedState();
-			updateTimerState();
-			armedState();
-			countdownState();
-			intruderState();
+			//disarmedState();
+			//updateTimerState();
+			//armedState();
+			//countdownState();
+			//intruderState();
 		}
 		
 	
@@ -134,6 +137,7 @@ void countdownState()
 }
 void intruderState()
 {
+	displayArmed();
 }
 
 
@@ -192,9 +196,41 @@ void lcdready(){
 void updateLCD()
 {
 }
-void updateStatus()
+
+void displayArmed()
 {
+	unsigned char code msg[]="ARMED";
+  unsigned char i=0;                                                                                 
+
+	//Writing to second line
+	write_to_lcd(0xC0,COMMAND);
+	
+	while (msg[i]!='\0') 
+   write_to_lcd(msg[i++],LCD_DATA);
 }
+void displayDisarmed()
+{
+	unsigned char code msg[]="DISARMED";
+  unsigned char i=0;                                                                                      
+
+	//Writing to second line
+	write_to_lcd(0xC0,COMMAND);
+	
+	while (msg[i]!='\0') 
+   write_to_lcd(msg[i++],LCD_DATA);
+}
+void displayIntruder()
+{
+	unsigned char code msg[]="INTRUDER!";
+  unsigned char i=0;                                                                                    
+
+	//Writing to second line
+	write_to_lcd(0xC0,COMMAND);
+	
+	while (msg[i]!='\0') 
+   write_to_lcd(msg[i++],LCD_DATA);
+}
+
 void turnOnLaser()
 {
 }
@@ -210,9 +246,7 @@ void countDownTimer(int time)
 	char lsb = (time%10)+48;
 	
   unsigned char code timer[]="Timer:NA seconds";
-  unsigned char t = 0;
-	
-  init_lcd();                                                                                       
+  unsigned char t = 0;                                                                            
 	
 	//Writing first line
 	write_to_lcd(0x80,COMMAND); //Move to start of first line
@@ -233,6 +267,7 @@ void countDownTimer(int time)
 		write_to_lcd(msb,LCD_DATA); //Writes left to right
 		write_to_lcd(lsb,LCD_DATA);
 		
+		//Keeps both numbers at 00
 		if (msb == 0x30 && lsb == 0x30)
 		{
 			break;
@@ -240,7 +275,7 @@ void countDownTimer(int time)
 		
 		lsb--; //Deccrementing least significant bit
 		
-		MSDelay(250); //Replace with internal timer delay		 
+		delay(); //1 second delay	 
 	}
 }
 
