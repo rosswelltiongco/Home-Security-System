@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V6.22                                                        11/30/2017  16:57:06  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22                                                        11/30/2017  18:33:50  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
@@ -12,6 +12,8 @@ MEMORY MODEL: SMALL
 INPUT MODULES INCLUDED:
   .\Objects\Home_Security_System.obj (HOME_SECURITY_SYSTEM)
   C:\PROGRAM FILES\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\PROGRAM FILES\C51\LIB\C51S.LIB (?C?SIDIV)
+  C:\PROGRAM FILES\C51\LIB\C51S.LIB (?C?UIDIV)
 
 
 LINK MAP OF MODULE:  .\Objects\Home_Security_System (HOME_SECURITY_SYSTEM)
@@ -22,8 +24,9 @@ LINK MAP OF MODULE:  .\Objects\Home_Security_System (HOME_SECURITY_SYSTEM)
 
             * * * * * * *   D A T A   M E M O R Y   * * * * * * *
             REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
-            DATA    0008H     000DH     UNIT         _DATA_GROUP_
-                    0015H     000BH                  *** GAP ***
+            DATA    0008H     0008H     UNIT         _DATA_GROUP_
+            DATA    0010H     0002H     UNIT         ?DT?_UPDATETIMER?HOME_SECURITY_SYSTEM
+                    0012H     000EH                  *** GAP ***
             BIT     0020H.0   0000H.1   UNIT         ?BI?HOME_SECURITY_SYSTEM
             BIT     0020H.1   0000H.1   UNIT         _BIT_GROUP_
                     0020H.2   0000H.6                *** GAP ***
@@ -32,46 +35,70 @@ LINK MAP OF MODULE:  .\Objects\Home_Security_System (HOME_SECURITY_SYSTEM)
             * * * * * * *   C O D E   M E M O R Y   * * * * * * *
             CODE    0000H     0003H     ABSOLUTE     
                     0003H     07FDH                  *** GAP ***
-            CODE    0800H     00C5H     UNIT         ?PR?_DISPLAY?HOME_SECURITY_SYSTEM
-            CODE    08C5H     002AH     UNIT         ?CO?HOME_SECURITY_SYSTEM
-            CODE    08EFH     0020H     UNIT         ?PR?_MSDELAY?HOME_SECURITY_SYSTEM
-            CODE    090FH     001FH     UNIT         ?PR?_WRITE_TO_LCD?HOME_SECURITY_SYSTEM
-            CODE    092EH     001DH     UNIT         ?PR?LCDREADY?HOME_SECURITY_SYSTEM
-            CODE    094BH     001CH     UNIT         ?PR?INIT_LCD?HOME_SECURITY_SYSTEM
-            CODE    0967H     000CH     UNIT         ?C_C51STARTUP
-            CODE    0973H     000BH     UNIT         ?PR?MAIN?HOME_SECURITY_SYSTEM
+            CODE    0800H     009CH     UNIT         ?PR?_COUNTDOWNTIMER?HOME_SECURITY_SYSTEM
+            CODE    089CH     008BH     UNIT         ?C?LIB_CODE
+            CODE    0927H     0020H     UNIT         ?PR?_MSDELAY?HOME_SECURITY_SYSTEM
+            CODE    0947H     001DH     UNIT         ?PR?LCDREADY?HOME_SECURITY_SYSTEM
+            CODE    0964H     001CH     UNIT         ?PR?INIT_LCD?HOME_SECURITY_SYSTEM
+            CODE    0980H     001AH     UNIT         ?PR?_WRITE_TO_LCD?HOME_SECURITY_SYSTEM
+            CODE    099AH     0011H     UNIT         ?PR?MAIN?HOME_SECURITY_SYSTEM
+            CODE    09ABH     0011H     UNIT         ?CO?HOME_SECURITY_SYSTEM
+            CODE    09BCH     000CH     UNIT         ?C_C51STARTUP
+            CODE    09C8H     0007H     UNIT         ?PR?COUNTDOWNSTATE?HOME_SECURITY_SYSTEM
+            CODE    09CFH     0005H     UNIT         ?PR?_UPDATETIMER?HOME_SECURITY_SYSTEM
+            CODE    09D4H     0001H     UNIT         ?PR?DISARMEDSTATE?HOME_SECURITY_SYSTEM
+            CODE    09D5H     0001H     UNIT         ?PR?UPDATETIMERSTATE?HOME_SECURITY_SYSTEM
+            CODE    09D6H     0001H     UNIT         ?PR?ARMEDSTATE?HOME_SECURITY_SYSTEM
+            CODE    09D7H     0001H     UNIT         ?PR?INTRUDERSTATE?HOME_SECURITY_SYSTEM
+            CODE    09D8H     0001H     UNIT         ?PR?UPDATELCD?HOME_SECURITY_SYSTEM
+            CODE    09D9H     0001H     UNIT         ?PR?UPDATESTATUS?HOME_SECURITY_SYSTEM
+            CODE    09DAH     0001H     UNIT         ?PR?TURNONLASER?HOME_SECURITY_SYSTEM
+            CODE    09DBH     0001H     UNIT         ?PR?TURNOFFLASER?HOME_SECURITY_SYSTEM
+            CODE    09DCH     0001H     UNIT         ?PR?UPDATETIMERLEDS?HOME_SECURITY_SYSTEM
+            CODE    09DDH     0001H     UNIT         ?PR?TURNONALARM?HOME_SECURITY_SYSTEM
+            CODE    09DEH     0001H     UNIT         ?PR?TURNOFFALARM?HOME_SECURITY_SYSTEM
+            CODE    09DFH     0001H     UNIT         ?PR?FLASHINTRUDER?HOME_SECURITY_SYSTEM
+            CODE    09E0H     0001H     UNIT         ?PR?SOUNDALARM?HOME_SECURITY_SYSTEM
+BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  18:33:50  PAGE 2
+
+
+            CODE    09E1H     0001H     UNIT         ?PR?RESETTIMER?HOME_SECURITY_SYSTEM
 
 
 
 OVERLAY MAP OF MODULE:   .\Objects\Home_Security_System (HOME_SECURITY_SYSTEM)
 
 
-SEGMENT                                           BIT_GROUP          DATA_GROUP 
-  +--> CALLED SEGMENT                          START    LENGTH     START    LENGTH
-----------------------------------------------------------------------------------
-?C_C51STARTUP                                  -----    -----      -----    -----
+SEGMENT                                             BIT_GROUP          DATA_GROUP 
+  +--> CALLED SEGMENT                            START    LENGTH     START    LENGTH
+------------------------------------------------------------------------------------
+?C_C51STARTUP                                    -----    -----      -----    -----
   +--> ?PR?MAIN?HOME_SECURITY_SYSTEM
 
-?PR?MAIN?HOME_SECURITY_SYSTEM                  -----    -----      -----    -----
-  +--> ?PR?_DISPLAY?HOME_SECURITY_SYSTEM
+?PR?MAIN?HOME_SECURITY_SYSTEM                    -----    -----      -----    -----
+  +--> ?PR?DISARMEDSTATE?HOME_SECURITY_SYSTEM
+  +--> ?PR?UPDATETIMERSTATE?HOME_SECURITY_SY...
+  +--> ?PR?ARMEDSTATE?HOME_SECURITY_SYSTEM
+  +--> ?PR?COUNTDOWNSTATE?HOME_SECURITY_SYSTEM
+  +--> ?PR?INTRUDERSTATE?HOME_SECURITY_SYSTEM
 
-?PR?_DISPLAY?HOME_SECURITY_SYSTEM              -----    -----      0008H    000CH
+?PR?COUNTDOWNSTATE?HOME_SECURITY_SYSTEM          -----    -----      -----    -----
+  +--> ?PR?_COUNTDOWNTIMER?HOME_SECURITY_SYSTEM
+
+?PR?_COUNTDOWNTIMER?HOME_SECURITY_SYSTEM         -----    -----      0008H    0007H
   +--> ?PR?INIT_LCD?HOME_SECURITY_SYSTEM
   +--> ?CO?HOME_SECURITY_SYSTEM
   +--> ?PR?_WRITE_TO_LCD?HOME_SECURITY_SYSTEM
-BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  16:57:06  PAGE 2
-
-
   +--> ?PR?_MSDELAY?HOME_SECURITY_SYSTEM
 
-?PR?INIT_LCD?HOME_SECURITY_SYSTEM              -----    -----      -----    -----
+?PR?INIT_LCD?HOME_SECURITY_SYSTEM                -----    -----      -----    -----
   +--> ?PR?_WRITE_TO_LCD?HOME_SECURITY_SYSTEM
 
-?PR?_WRITE_TO_LCD?HOME_SECURITY_SYSTEM         0020H.1  0000H.1    0014H    0001H
+?PR?_WRITE_TO_LCD?HOME_SECURITY_SYSTEM           0020H.1  0000H.1    000FH    0001H
   +--> ?PR?LCDREADY?HOME_SECURITY_SYSTEM
   +--> ?PR?_MSDELAY?HOME_SECURITY_SYSTEM
 
-?PR?LCDREADY?HOME_SECURITY_SYSTEM              -----    -----      -----    -----
+?PR?LCDREADY?HOME_SECURITY_SYSTEM                -----    -----      -----    -----
   +--> ?PR?_MSDELAY?HOME_SECURITY_SYSTEM
 
 
@@ -87,107 +114,99 @@ SYMBOL TABLE OF MODULE:  .\Objects\Home_Security_System (HOME_SECURITY_SYSTEM)
   D:0090H         PUBLIC        P1
   D:00A0H         PUBLIC        P2
   D:00B0H         PUBLIC        P3
-  C:0914H         PUBLIC        _write_to_lcd
-  C:08EFH         PUBLIC        _MSDelay
-  C:0973H         PUBLIC        main
+  C:09DAH         PUBLIC        turnOnLaser
+  C:0980H         PUBLIC        _write_to_lcd
+  C:09CFH         PUBLIC        _updateTimer
+  C:09D9H         PUBLIC        updateStatus
+  C:09D6H         PUBLIC        armedState
+BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  18:33:50  PAGE 3
+
+
+  C:09D5H         PUBLIC        updateTimerState
+  C:0927H         PUBLIC        _MSDelay
+  C:09E0H         PUBLIC        soundAlarm
+  C:099AH         PUBLIC        main
+  C:09E1H         PUBLIC        resetTimer
   B:0020H.0       PUBLIC        dir
   B:00A0H.7       PUBLIC        busy
-  C:094BH         PUBLIC        init_lcd
-  C:092EH         PUBLIC        lcdready
+  C:0964H         PUBLIC        init_lcd
+  C:0800H         PUBLIC        _countDownTimer
+  C:0947H         PUBLIC        lcdready
+  C:09D4H         PUBLIC        disarmedState
   B:00B0H.7       PUBLIC        en
+  C:09DCH         PUBLIC        updateTimerLEDs
+  C:09DEH         PUBLIC        turnOffAlarm
+  C:09D8H         PUBLIC        updateLCD
+  C:09DBH         PUBLIC        turnOffLaser
+  C:09DFH         PUBLIC        flashIntruder
   B:00B0H.6       PUBLIC        rs
   B:00B0H.5       PUBLIC        rw
-  C:0800H         PUBLIC        _display
+  C:09C8H         PUBLIC        countdownState
+  C:09D7H         PUBLIC        intruderState
+  C:09DDH         PUBLIC        turnOnAlarm
   -------         PROC          MAIN
-  C:0973H         LINE#         48
-  C:0973H         LINE#         49
-  C:0973H         LINE#         50
-  C:097CH         LINE#         51
+  C:099AH         LINE#         64
+  C:099AH         LINE#         65
+  C:099AH         LINE#         66
+  C:099DH         LINE#         67
+  C:09A0H         LINE#         68
+  C:09A3H         LINE#         69
+  C:09A6H         LINE#         70
+  C:09A9H         LINE#         71
   -------         ENDPROC       MAIN
-  -------         PROC          _DISPLAY
-  D:0008H         SYMBOL        time
-  D:000AH         SYMBOL        status
-  -------         DO            
-  D:000CH         SYMBOL        count
-  D:000EH         SYMBOL        msb
-  D:000FH         SYMBOL        lsb
-  C:08C5H         SYMBOL        timer
-  C:08D6H         SYMBOL        armed
-  C:08DCH         SYMBOL        disarmed
-  C:08E5H         SYMBOL        intruder
-  D:0010H         SYMBOL        t
-  D:0011H         SYMBOL        a
-  D:0012H         SYMBOL        d
-  D:0013H         SYMBOL        i
-BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  16:57:06  PAGE 3
+  -------         PROC          DISARMEDSTATE
+  C:09D4H         LINE#         81
+  C:09D4H         LINE#         82
+  C:09D4H         LINE#         83
+  -------         ENDPROC       DISARMEDSTATE
+  -------         PROC          UPDATETIMERSTATE
+  C:09D5H         LINE#         84
+  C:09D5H         LINE#         85
+  C:09D5H         LINE#         86
+  -------         ENDPROC       UPDATETIMERSTATE
+  -------         PROC          ARMEDSTATE
+  C:09D6H         LINE#         87
+  C:09D6H         LINE#         88
+  C:09D6H         LINE#         89
+  -------         ENDPROC       ARMEDSTATE
+  -------         PROC          COUNTDOWNSTATE
+  C:09C8H         LINE#         90
+  C:09C8H         LINE#         91
+  C:09C8H         LINE#         92
+  -------         ENDPROC       COUNTDOWNSTATE
+  -------         PROC          INTRUDERSTATE
+  C:09D7H         LINE#         94
+  C:09D7H         LINE#         95
+  C:09D7H         LINE#         96
+  -------         ENDPROC       INTRUDERSTATE
+BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  18:33:50  PAGE 4
 
 
-  -------         ENDDO         
-  C:0800H         LINE#         65
-  C:0808H         LINE#         69
-  C:080BH         LINE#         70
-  C:080EH         LINE#         76
-  C:0811H         LINE#         78
-  C:0814H         LINE#         81
-  C:081AH         LINE#         82
-  C:0822H         LINE#         83
-  C:0830H         LINE#         86
-  C:0837H         LINE#         88
-  C:083DH         LINE#         89
-  C:083DH         LINE#         90
-  C:0845H         LINE#         91
-  C:084EH         LINE#         92
-  C:084EH         LINE#         93
-  C:0854H         LINE#         94
-  C:0854H         LINE#         95
-  C:085CH         LINE#         96
-  C:0865H         LINE#         97
-  C:0865H         LINE#         99
-  C:0865H         LINE#         100
-  C:086DH         LINE#         101
-  C:0876H         LINE#         102
-  C:0876H         LINE#         104
-  C:0883H         LINE#         105
-  C:088BH         LINE#         106
-  C:088EH         LINE#         107
-  C:0890H         LINE#         108
-  C:0899H         LINE#         109
-  C:089CH         LINE#         110
-  C:089CH         LINE#         111
-  C:089CH         LINE#         113
-  C:08A3H         LINE#         114
-  C:08AAH         LINE#         115
-  C:08B1H         LINE#         117
-  C:08B3H         LINE#         119
-  C:08BAH         LINE#         120
-  C:08C4H         LINE#         121
-  -------         ENDPROC       _DISPLAY
+  -------         PROC          _UPDATETIMER
+  D:0010H         SYMBOL        time
+  C:09CFH         LINE#         104
+  C:09D3H         LINE#         105
+  C:09D3H         LINE#         106
+  -------         ENDPROC       _UPDATETIMER
   -------         PROC          INIT_LCD
-  C:094BH         LINE#         126
-  C:094BH         LINE#         129
-  C:0952H         LINE#         131
-  C:0959H         LINE#         133
-  C:0960H         LINE#         135
+  C:0964H         LINE#         110
+  C:0964H         LINE#         113
+  C:096BH         LINE#         115
+  C:0972H         LINE#         117
+  C:0979H         LINE#         119
   -------         ENDPROC       INIT_LCD
-  C:090FH         SYMBOL        L?0039
-  -------         PROC          L?0038
-  -------         ENDPROC       L?0038
-  C:090FH         SYMBOL        L?0039
   -------         PROC          _WRITE_TO_LCD
-  D:0014H         SYMBOL        value
+  D:000FH         SYMBOL        value
   B:0020H.1       SYMBOL        mode
-  C:0914H         LINE#         138
-  C:0916H         LINE#         139
-  C:0919H         LINE#         140
-BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  16:57:06  PAGE 4
-
-
-  C:091CH         LINE#         141
-  C:0920H         LINE#         142
-  C:0922H         LINE#         143
-  C:0924H         LINE#         144
-  C:092BH         LINE#         145
-  C:092DH         LINE#         146
+  C:0980H         LINE#         122
+  C:0982H         LINE#         123
+  C:0985H         LINE#         124
+  C:0988H         LINE#         125
+  C:098CH         LINE#         126
+  C:098EH         LINE#         127
+  C:0990H         LINE#         128
+  C:0997H         LINE#         129
+  C:0999H         LINE#         130
   -------         ENDPROC       _WRITE_TO_LCD
   -------         PROC          _MSDELAY
   D:0006H         SYMBOL        itime
@@ -195,31 +214,169 @@ SYMBOL TABLE OF MODULE:  .\Objects\Home_Security_System (HOME_SECURITY_SYSTEM)
   D:0004H         SYMBOL        i
   D:0002H         SYMBOL        j
   -------         ENDDO         
-  C:08EFH         LINE#         147
-  C:08EFH         LINE#         149
-  C:08F9H         LINE#         150
-  C:090EH         LINE#         152
+  C:0927H         LINE#         131
+  C:0927H         LINE#         133
+  C:0931H         LINE#         134
+  C:0946H         LINE#         136
   -------         ENDPROC       _MSDELAY
   -------         PROC          LCDREADY
-  C:092EH         LINE#         153
-  C:092EH         LINE#         154
-  C:0930H         LINE#         155
-  C:0932H         LINE#         156
-  C:0934H         LINE#         157
-  C:0936H         LINE#         158
-  C:0939H         LINE#         159
-  C:093BH         LINE#         160
-  C:0942H         LINE#         161
-  C:0944H         LINE#         162
-  C:0946H         LINE#         163
-  C:0948H         LINE#         164
-  C:094AH         LINE#         165
+  C:0947H         LINE#         137
+  C:0947H         LINE#         138
+  C:0949H         LINE#         139
+  C:094BH         LINE#         140
+  C:094DH         LINE#         141
+  C:094FH         LINE#         142
+  C:0952H         LINE#         143
+  C:0954H         LINE#         144
+  C:095BH         LINE#         145
+  C:095DH         LINE#         146
+  C:095FH         LINE#         147
+  C:0961H         LINE#         148
+  C:0963H         LINE#         149
   -------         ENDPROC       LCDREADY
+  -------         PROC          UPDATELCD
+  C:09D8H         LINE#         151
+  C:09D8H         LINE#         152
+  C:09D8H         LINE#         153
+  -------         ENDPROC       UPDATELCD
+BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  18:33:50  PAGE 5
+
+
+  -------         PROC          UPDATESTATUS
+  C:09D9H         LINE#         154
+  C:09D9H         LINE#         155
+  C:09D9H         LINE#         156
+  -------         ENDPROC       UPDATESTATUS
+  -------         PROC          TURNONLASER
+  C:09DAH         LINE#         157
+  C:09DAH         LINE#         158
+  C:09DAH         LINE#         159
+  -------         ENDPROC       TURNONLASER
+  -------         PROC          TURNOFFLASER
+  C:09DBH         LINE#         160
+  C:09DBH         LINE#         161
+  C:09DBH         LINE#         162
+  -------         ENDPROC       TURNOFFLASER
+  -------         PROC          _COUNTDOWNTIMER
+  D:0008H         SYMBOL        time
+  -------         DO            
+  D:000AH         SYMBOL        count
+  D:000CH         SYMBOL        msb
+  D:000DH         SYMBOL        lsb
+  C:09ABH         SYMBOL        timer
+  D:000EH         SYMBOL        t
+  -------         ENDDO         
+  C:0800H         LINE#         163
+  C:0804H         LINE#         164
+  C:0804H         LINE#         168
+  C:0810H         LINE#         169
+  C:0820H         LINE#         172
+  C:0823H         LINE#         174
+  C:0826H         LINE#         177
+  C:082CH         LINE#         178
+  C:0834H         LINE#         179
+  C:0842H         LINE#         182
+  C:084FH         LINE#         183
+  C:0857H         LINE#         184
+  C:085AH         LINE#         185
+  C:085CH         LINE#         186
+  C:0865H         LINE#         187
+  C:0868H         LINE#         188
+  C:0868H         LINE#         189
+  C:0868H         LINE#         191
+  C:086FH         LINE#         192
+  C:0876H         LINE#         193
+  C:087DH         LINE#         195
+  C:0888H         LINE#         196
+  C:0888H         LINE#         197
+  C:0888H         LINE#         198
+  C:0888H         LINE#         200
+  C:088AH         LINE#         202
+  C:0891H         LINE#         203
+  C:089BH         LINE#         204
+  -------         ENDPROC       _COUNTDOWNTIMER
+  -------         PROC          UPDATETIMERLEDS
+  C:09DCH         LINE#         206
+  C:09DCH         LINE#         207
+  C:09DCH         LINE#         208
+BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  18:33:50  PAGE 6
+
+
+  -------         ENDPROC       UPDATETIMERLEDS
+  -------         PROC          TURNONALARM
+  C:09DDH         LINE#         209
+  C:09DDH         LINE#         210
+  C:09DDH         LINE#         211
+  -------         ENDPROC       TURNONALARM
+  -------         PROC          TURNOFFALARM
+  C:09DEH         LINE#         212
+  C:09DEH         LINE#         213
+  C:09DEH         LINE#         214
+  -------         ENDPROC       TURNOFFALARM
+  -------         PROC          FLASHINTRUDER
+  C:09DFH         LINE#         215
+  C:09DFH         LINE#         216
+  C:09DFH         LINE#         217
+  -------         ENDPROC       FLASHINTRUDER
+  -------         PROC          SOUNDALARM
+  C:09E0H         LINE#         218
+  C:09E0H         LINE#         219
+  C:09E0H         LINE#         220
+  -------         ENDPROC       SOUNDALARM
+  -------         PROC          RESETTIMER
+  C:09E1H         LINE#         221
+  C:09E1H         LINE#         222
+  C:09E1H         LINE#         223
+  -------         ENDPROC       RESETTIMER
   -------         ENDMOD        HOME_SECURITY_SYSTEM
 
+  -------         MODULE        ?C?SIDIV
+  C:089CH         PUBLIC        ?C?SIDIV
+  -------         ENDMOD        ?C?SIDIV
+
+  -------         MODULE        ?C?UIDIV
+  C:08D2H         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_UPDATETIMER?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?UPDATELCD?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?UPDATESTATUS?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?TURNONLASER?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?TURNOFFLASER?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?UPDATETIMERLEDS?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?TURNONALARM?HOME_SECURITY_SYSTEM
+
+BL51 BANKED LINKER/LOCATER V6.22                                                      11/30/2017  18:33:50  PAGE 7
+
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?TURNOFFALARM?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?FLASHINTRUDER?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?SOUNDALARM?HOME_SECURITY_SYSTEM
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?RESETTIMER?HOME_SECURITY_SYSTEM
+
 ******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 0172H BYTE (18%) *
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 014BH BYTE (16%) *
 ******************************************************************************
 
-Program Size: data=22.2 xdata=0 code=385
-LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
+Program Size: data=19.2 xdata=0 code=485
+LINK/LOCATE RUN COMPLETE.  11 WARNING(S),  0 ERROR(S)
