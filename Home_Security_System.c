@@ -42,6 +42,7 @@ void write_to_lcd(unsigned char value, bit mode);//write data or command
 void MSDelay(unsigned int itime);//delay 1 ms
 void lcdready(void);//check if lcd is ready to write to
 void display(int time, int status);
+void updateTimer(int time);
 
 
 /**************************************************************/
@@ -120,6 +121,63 @@ void display(int time, int status){
 	}
 }
 
+void updateTimer(int time){
+	unsigned int count;
+	
+	//Initializing every decimal place to 0
+	char msb= 0x39;
+	char lsb = 0x39;
+	
+  unsigned char code timer[]="Timer:NA seconds";
+	unsigned char code armed[]="Armed";
+	unsigned char code disarmed[]="Disarmed";
+	unsigned char code intruder[]="Intruder!";
+  unsigned char t,a,d,i =0;
+	
+  init_lcd();                                                                                       
+	
+	//Writing first line
+	write_to_lcd(0x80,COMMAND); //Move to start of first line
+	while (timer[t]!='\0') 
+   write_to_lcd(timer[i++],LCD_DATA);
+	
+	//Writing second line
+	write_to_lcd(0xC0,COMMAND); //Move cursor to start of second line
+	
+	if (status == 0)
+	{	
+		while (armed[a]!='\0') 
+		 write_to_lcd(armed[a++],LCD_DATA);
+	}
+	else if (status == 0)
+	{	
+		while (disarmed[d]!='\0') 
+		 write_to_lcd(disarmed[d++],LCD_DATA);
+	}
+	else
+	{	
+		while (intruder[i]!='\0') 
+		 write_to_lcd(intruder[i++],LCD_DATA);
+	}
+	
+	for (count = time; count >= 0; count--){		
+		if (lsb < 0x30){
+			lsb = 0x39;
+			msb--;
+			if (msb < 0x30){
+				msb = 0x39;
+			}
+		}
+		
+		write_to_lcd(0x86,COMMAND); //Write to sceond line
+		write_to_lcd(msb,LCD_DATA); //Writes left to right
+		write_to_lcd(lsb,LCD_DATA);
+		
+		lsb--; //Deccrementing least significant bit
+		
+		MSDelay(100); //Replace with internal timer delay		 
+	}
+}
 
 
 //setup LCD for required display
