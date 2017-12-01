@@ -31,7 +31,9 @@ sbit en = P3^7;
 
 //variables
 bit dir;//1 = cw, 0 = ccw
+unsigned int time = 50; //  Default:50 (99-7)/2 = 46, rounded up
 unsigned int delayVal = 0;
+
 //Interrupt functions
 void timer1(void) interrupt 3{//50ms 
 	TR1 = 0;//turn timer off
@@ -42,9 +44,15 @@ void timer1(void) interrupt 3{//50ms
 void encoder() interrupt 0//
 {
 	if(EncB == 1)
+	{
 		dir = 1;
+		time++;
+	}
 	else
+	{
 		dir = 0;
+		time--;
+	}
 }
 void breakBeam() interrupt 2
 {
@@ -81,7 +89,7 @@ void init_lcd();//initialize LCD
 void write_to_lcd(unsigned char value, bit mode);//write data or command
 void MSDelay(unsigned int itime);//delay 1 ms
 void lcdready(void);//check if lcd is ready to write to
-void updateTimer(int time);
+void displayTime(unsigned int time);
 void updateLCD();
 void displayArmed();
 void displayDisarmed();
@@ -89,7 +97,6 @@ void displayIntruder();
 void turnOnLaser();
 void turnOffLaser();
 void countDownTimer(int num);
-void updateTimerLEDs();
 void turnOnAlarm();
 void turnOffAlarm();
 void flashIntruder();
@@ -147,16 +154,21 @@ void main(){
 
 void disarmedState()
 {
+	displayTime(time);
 }
-void updateTimerState()
+void updateTimerState() //Fixme: No need for this state? Will wait for John's lecture
 {
+	//FIXME: will the encoder just take it to this state?
+	displayTime(time);
+	delay(); //Short delay so that 
 }
 void armedState()
 {
+	displayTime(time);
 }
 void countdownState()
 {
-	countDownTimer(12);
+	countDownTimer(time);
 }
 void intruderState()
 {
@@ -180,8 +192,24 @@ void intruderState()
 ////////////////////////////////////////////////////////////////
 //               LCD  Helper Functions                        //
 ////////////////////////////////////////////////////////////////
-void updateTimer(int time)
+void displayTime(unsigned int time)
 {
+	//Converting and separating to what was passed in
+	char msb = (time/10)+48;
+	char lsb = (time%10)+48;
+	
+  unsigned char code timer[]="Timer:NA seconds";
+  unsigned char t = 0;                                                                            
+	
+	//Writing first line
+	write_to_lcd(0x80,COMMAND); //Move to start of first line
+	while (timer[t]!='\0') 
+   write_to_lcd(timer[t++],LCD_DATA);
+
+	//Write to start of number on first line from left to right
+	write_to_lcd(0x86,COMMAND); 
+	write_to_lcd(msb,LCD_DATA); 
+	write_to_lcd(lsb,LCD_DATA); 
 }
 
 
@@ -297,9 +325,9 @@ void countDownTimer(int time)
 			}
 		}
 		
-		
-		write_to_lcd(0x86,COMMAND); //Write to second line
-		write_to_lcd(msb,LCD_DATA); //Writes left to right
+		//Write to start of number on first line from left to right
+		write_to_lcd(0x86,COMMAND); 
+		write_to_lcd(msb,LCD_DATA);
 		write_to_lcd(lsb,LCD_DATA);
 		
 		//turn on and off LEDS
@@ -343,9 +371,6 @@ void countDownTimer(int time)
 	}
 }
 
-void updateTimerLEDs()
-{
-}
 void turnOnAlarm()
 {
 }
