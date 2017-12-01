@@ -58,7 +58,15 @@ void delay()//delay 1 second
 		TR1 = 1;
 	}
 	TR1 = 0;
-	
+}
+void delayHalf()//delay 0.5 second
+{
+	delayVal = 10;
+	while(delayVal > 0)
+	{
+		TR1 = 1;
+	}
+	TR1 = 0;
 }
 
 //State Functions
@@ -103,10 +111,25 @@ void main(){
 	//enable external interrupts
 	EX1 = 1;
 	EX0 = 1;
+	//Delcare inputs and outputs
+	//P0 = 0xFF;
+	//P1 = 0x08;
+	//P3 = 0x0C;
+	LED0 = 0;
+	LED1 = 0;
+	//turn off LEDS
+	GREEN = 1;
+	YELLOW = 1;
+	RED = 1;
 	
-	countDownTimer(12);
-	displayIntruder();
+	init_lcd();
+	//countDownTimer(12);
+	//displayDisarmed();
+	//countDownTimer(7);
+	//intruderState();
 		while(1){
+				countDownTimer(12);
+				intruderState();
 			//disarmedState();
 			//updateTimerState();
 			//armedState();
@@ -137,7 +160,18 @@ void countdownState()
 }
 void intruderState()
 {
-	displayArmed();
+	displayIntruder();
+	delay();
+	//displayArmed();
+	for(;;)
+	{
+		LED0 = 1;
+		LED1 = 0;
+		delayHalf();
+		LED0 = 0;
+		LED1 = 1;
+		delayHalf();
+	}
 }
 
 
@@ -263,9 +297,39 @@ void countDownTimer(int time)
 			}
 		}
 		
+		
 		write_to_lcd(0x86,COMMAND); //Write to second line
 		write_to_lcd(msb,LCD_DATA); //Writes left to right
 		write_to_lcd(lsb,LCD_DATA);
+		
+		//turn on and off LEDS
+		if(msb > 0x30 )//greater than 10, green
+		{
+			GREEN = 1;
+			YELLOW = 0;
+			RED = 0;
+		}
+		else
+		{
+			if(lsb >= 0x34 && lsb <= 0x36)//4-6 yellow
+			{
+				GREEN = 0;
+				YELLOW = 1;
+				RED = 0;
+			}
+			else if(lsb >= 0x30 && lsb <= 0x33)//0-3 red
+			{
+				GREEN = 0;
+				YELLOW = 0;
+				RED = 1;
+			}
+			else//7-9 green
+			{
+				GREEN = 1;
+				YELLOW = 0;
+				RED = 0;
+			}
+		}
 		
 		//Keeps both numbers at 00
 		if (msb == 0x30 && lsb == 0x30)
