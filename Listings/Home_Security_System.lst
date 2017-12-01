@@ -1,0 +1,194 @@
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 16:57:05 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE HOME_SECURITY_SYSTEM
+OBJECT MODULE PLACED IN .\Objects\Home_Security_System.obj
+COMPILER INVOKED BY: C:\Program Files\C51\BIN\C51.EXE Home_Security_System.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND
+                    - PRINT(.\Listings\Home_Security_System.lst) TABS(2) OBJECT(.\Objects\Home_Security_System.obj)
+
+line level    source
+
+   1          //////////////////////////////////
+   2          //     Home Security System     //
+   3          //////////////////////////////////
+   4          
+   5          #include <reg51.h>
+   6          
+   7          
+   8          #define COMMAND 0
+   9          #define LCD_DATA 1
+  10          
+  11          //Declaring Port Pins
+  12          //P0
+  13          sbit ARM = P0^0;
+  14          //P1
+  15          sbit LED0 = P1^0;
+  16          sbit LED1 = P1^1;
+  17          sbit LaserSwitch = P1^2;
+  18          sbit EncB = P1^3;
+  19          sbit GREEN = P1^5;
+  20          sbit YELLOW = P1^6;
+  21          sbit RED = P1^7;
+  22          //P2
+  23          #define ldata P2
+  24          sbit busy = P2^7; // connected to DB7 on the LCD
+  25          //P3
+  26          sbit EncA = P3^2;
+  27          sbit BREAK = P3^3;
+  28          sbit rw = P3^5;
+  29          sbit rs = P3^6;
+  30          sbit en = P3^7;
+  31          
+  32          //variables
+  33          bit dir;
+  34          
+  35          
+  36          
+  37          
+  38          
+  39          //Function Prototypes
+  40          void init_lcd();//initialize LCD
+  41          void write_to_lcd(unsigned char value, bit mode);//write data or command
+  42          void MSDelay(unsigned int itime);//delay 1 ms
+  43          void lcdready(void);//check if lcd is ready to write to
+  44          void display(int time, int status);
+  45          
+  46          
+  47          /**************************************************************/
+  48          void main(){
+  49   1          while(1){
+  50   2            display(60, 0);
+  51   2          }
+  52   1          
+  53   1        
+  54   1        
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 16:57:05 PAGE 2   
+
+  55   1      
+  56   1      
+  57   1      }
+  58          /**************************************************************/
+  59          
+  60          
+  61          ////////////////////////////////////////////////////////////////
+  62          //               LCD  Helper Functions                        //
+  63          ////////////////////////////////////////////////////////////////
+  64          
+  65          void display(int time, int status){
+  66   1        unsigned int count;
+  67   1        
+  68   1        //Initializing every decimal place to 0
+  69   1        char msb= 0x39;
+  70   1        char lsb = 0x39;
+  71   1        
+  72   1        unsigned char code timer[]="Timer:NA seconds";
+  73   1        unsigned char code armed[]="Armed";
+  74   1        unsigned char code disarmed[]="Disarmed";
+  75   1        unsigned char code intruder[]="Intruder!";
+  76   1        unsigned char t,a,d,i =0;
+  77   1        
+  78   1        init_lcd();                                                                                       
+  79   1        
+  80   1        //Writing first line
+  81   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
+  82   1        while (timer[t]!='\0') 
+  83   1         write_to_lcd(timer[i++],LCD_DATA);
+  84   1        
+  85   1        //Writing second line
+  86   1        write_to_lcd(0xC0,COMMAND); //Move cursor to start of second line
+  87   1        
+  88   1        if (status == 0)
+  89   1        { 
+  90   2        while (armed[a]!='\0') 
+  91   2         write_to_lcd(armed[a++],LCD_DATA);
+  92   2        }
+  93   1        else if (status == 0)
+  94   1        { 
+  95   2        while (disarmed[d]!='\0') 
+  96   2         write_to_lcd(disarmed[d++],LCD_DATA);
+  97   2        }
+  98   1        else
+  99   1        { 
+ 100   2        while (intruder[i]!='\0') 
+ 101   2         write_to_lcd(intruder[i++],LCD_DATA);
+ 102   2        }
+ 103   1        
+ 104   1        for (count = time; count >= 0; count--){    
+ 105   2          if (lsb < 0x30){
+ 106   3            lsb = 0x39;
+ 107   3            msb--;
+ 108   3            if (msb < 0x30){
+ 109   4              msb = 0x39;
+ 110   4            }
+ 111   3          }
+ 112   2          
+ 113   2          write_to_lcd(0x86,COMMAND); //Write to sceond line
+ 114   2          write_to_lcd(msb,LCD_DATA); //Writes left to right
+ 115   2          write_to_lcd(lsb,LCD_DATA);
+ 116   2          
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              11/30/2017 16:57:05 PAGE 3   
+
+ 117   2          lsb--; //Deccrementing least significant bit
+ 118   2          
+ 119   2          MSDelay(100); //Replace with internal timer delay    
+ 120   2        }
+ 121   1      }
+ 122          
+ 123          
+ 124          
+ 125          //setup LCD for required display
+ 126          void init_lcd(){
+ 127   1        //all instructions here are commands, not data
+ 128   1        
+ 129   1        write_to_lcd(0x38,COMMAND);
+ 130   1      
+ 131   1        write_to_lcd(0x0E,COMMAND);
+ 132   1        
+ 133   1        write_to_lcd(0x06,COMMAND);
+ 134   1        //clear display and return cursor to home position
+ 135   1        write_to_lcd(0x01,COMMAND);
+ 136   1      }
+ 137          
+ 138          void write_to_lcd(unsigned char value, bit mode){
+ 139   1          lcdready();
+ 140   1        ldata = value;
+ 141   1        rs = mode; //1 for data, 0 for command
+ 142   1        rw = 0;
+ 143   1        en = 1;
+ 144   1        MSDelay(1);
+ 145   1        en = 0;
+ 146   1      }
+ 147          void MSDelay(unsigned int itime){
+ 148   1        unsigned i, j;
+ 149   1        for(i=0;i<itime;i++)
+ 150   1          for(j=0;j<1275;j++);
+ 151   1      
+ 152   1      }
+ 153          void lcdready(){
+ 154   1        busy = 1;
+ 155   1        en = 1;
+ 156   1        rs = 0;//command
+ 157   1        rw = 1;//read command
+ 158   1        while(busy){
+ 159   2          en = 0;
+ 160   2          MSDelay(1);
+ 161   2          en = 1;
+ 162   2        }
+ 163   1        en = 0;
+ 164   1        rw = 0;
+ 165   1      }
+ 166          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    328    ----
+   CONSTANT SIZE    =     42    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      13
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
