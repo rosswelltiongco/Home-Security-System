@@ -43,6 +43,17 @@ void MSDelay(unsigned int itime);//delay 1 ms
 void lcdready(void);//check if lcd is ready to write to
 void display(int time, int status);
 void updateTimer(int time);
+void updateLCD();
+void updateStatus();
+void turnOnLaser();
+void turnOffLaser();
+void countDownTimer();
+void updateTimerLEDs();
+void turnOnAlarm();
+void turnOffAlarm();
+void flashIntruder();
+void soundAlarm();
+void resetTimer();
 
 
 /**************************************************************/
@@ -222,3 +233,36 @@ void lcdready(){
 	rw = 0;
 }
 
+void updateLCD()
+{
+}
+void updateStatus()
+{
+}
+void turnOnLaser()
+{
+}
+void turnOffLaser()
+{
+}
+void countDownTimer()
+{
+}
+void updateTimerLEDs()
+{
+}
+void turnOnAlarm()
+{
+}
+void turnOffAlarm()
+{
+}
+void flashIntruder()
+{
+}
+void soundAlarm()
+{
+}
+void resetTimer()
+{
+}
