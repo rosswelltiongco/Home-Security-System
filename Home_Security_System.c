@@ -30,9 +30,36 @@ sbit rs = P3^6;
 sbit en = P3^7;
 
 //variables
-bit dir;
-
-
+bit dir;//1 = cw, 0 = ccw
+unsigned int delayVal = 0;
+//Interrupt functions
+void timer1(void) interrupt 3{//50ms 
+	TR1 = 0;//turn timer off
+	delayVal = delayVal - 1;//decrease delay value
+	TH1 = 0x4B;//initial values
+	TL1 = 0x92;
+}
+void encoder() interrupt 0//
+{
+	if(EncB == 1)
+		dir = 1;
+	else
+		dir = 0;
+}
+void breakBeam() interrupt 2
+{
+	
+}
+void delay()//delay 1 second
+{
+	delayVal = 20;
+	while(delayVal > 0)
+	{
+		TR1 = 1;
+	}
+	TR1 = 0;
+	
+}
 
 //State Functions
 void disarmedState();
@@ -62,6 +89,20 @@ void resetTimer();
 
 /**************************************************************/
 void main(){
+	//Interrupt enable
+	EA = 1;
+	ET1 = 1;
+	//Timer enable
+	TMOD = 0x10;//timer 1 mode 1
+	TH1 = 0x4B;//high bit value
+	TL1 = 0x92;//low bit value
+	TR1 = 0;//turn off timer 0
+	
+	//enable external interrupts
+	EX1 = 1;
+	EX0 = 1;
+	
+	
 		while(1){
 			disarmedState();
 			updateTimerState();

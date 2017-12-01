@@ -362,6 +362,13 @@
       <Groups>
         <Group>
           <GroupName>Source Group 1</GroupName>
+          <Files>
+            <File>
+              <FileName>Home_Security_System.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Home_Security_System.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>
