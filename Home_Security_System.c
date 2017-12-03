@@ -30,9 +30,14 @@ sbit rs = P3^6;
 sbit en = P3^7;
 
 //variables
+unsigned int countDownNum = 7;
 bit dir;//1 = cw, 0 = ccw
+bit update;//1 = add/subtract, 0 = stay the same
 unsigned int time = 50; //  Default:50 (99-7)/2 = 46, rounded up
 unsigned int delayVal = 0;
+
+//bit variables to keep track of state
+bit inArmed = 0;
 
 //Interrupt functions
 void timer1(void) interrupt 3{//50ms 
@@ -56,7 +61,7 @@ void encoder() interrupt 0//
 }
 void breakBeam() interrupt 2
 {
-	
+	RED = ~RED;
 }
 void delay()//delay 1 second
 {
@@ -118,6 +123,7 @@ void main(){
 	//enable external interrupts
 	EX1 = 1;
 	EX0 = 1;
+	IT1 = 1;
 	//Delcare inputs and outputs
 	//P0 = 0xFF;
 	//P1 = 0x08;
@@ -125,9 +131,11 @@ void main(){
 	LED0 = 0;
 	LED1 = 0;
 	//turn off LEDS
-	GREEN = 1;
-	YELLOW = 1;
-	RED = 1;
+	GREEN = 0;
+	YELLOW = 0;
+	RED = 0;
+	//Turn off laser
+	LaserSwitch = 0;
 	
 	init_lcd();
 	//countDownTimer(12);
@@ -135,7 +143,21 @@ void main(){
 	//countDownTimer(7);
 	//intruderState();
 		while(1){
+				turnOnLaser();
+				delay();
+				delay();
+				turnOffLaser();
+				delay();
+				delay();
+				turnOnLaser();
+				delay();
+				delay();
+				turnOffLaser();
+				delay();
+				delay();
+				turnOnLaser();		
 				countDownTimer(12);
+				turnOnLaser();
 				intruderState();
 			//disarmedState();
 			//updateTimerState();
@@ -295,9 +317,11 @@ void displayIntruder()
 
 void turnOnLaser()
 {
+	LaserSwitch = 1;
 }
 void turnOffLaser()
 {
+	LaserSwitch = 0;
 }
 void countDownTimer(int time)
 {
