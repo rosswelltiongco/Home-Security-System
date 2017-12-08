@@ -31,13 +31,17 @@ sbit en = P3^7;
 
 //variables
 unsigned int countDownNum = 7;
-bit dir;//1 = cw, 0 = ccw
-bit update;//1 = add/subtract, 0 = stay the same
+unsigned int prevTime;
+
+unsigned int dir;//1 = cw, -1 = ccw
+bit update;//0 = stay same,1 = update
+
 unsigned int time = 50; //  Default:50 (99-7)/2 = 46, rounded up
 unsigned int delayVal = 0;
 
 //bit variables to keep track of state
-bit inArmed = 0;
+bit ARMED = 0;
+bit timer;
 
 //Interrupt functions
 void timer1(void) interrupt 3{//50ms 
@@ -46,20 +50,8 @@ void timer1(void) interrupt 3{//50ms
 	TH1 = 0x4B;//initial values
 	TL1 = 0x92;
 }
-void encoder() interrupt 0//
-{
-	if(EncB == 1)
-	{
-		dir = 1;
-		time++;
-	}
-	else
-	{
-		dir = 0;
-		time--;
-	}
-}
-void breakBeam() interrupt 2
+
+void breakBeam() interrupt 2//senses if beam is broken
 {
 	RED = ~RED;
 }
@@ -95,7 +87,7 @@ void write_to_lcd(unsigned char value, bit mode);//write data or command
 void MSDelay(unsigned int itime);//delay 1 ms
 void lcdready(void);//check if lcd is ready to write to
 void displayTime(unsigned int time);
-void updateLCD();
+void updateLCD(unsigned int time);//updates numbers
 void displayArmed();
 void displayDisarmed();
 void displayIntruder();
@@ -108,6 +100,19 @@ void flashIntruder();
 void soundAlarm();
 void resetTimer();
 
+
+void encoder() interrupt 0//
+{	
+	if(EncB == 1)//cw
+	{
+		dir = 1;
+	}
+	else//ccw
+	{
+		dir = -1;
+	}
+	update = 1;//update flag, interrupt will always show what direction
+}
 
 /**************************************************************/
 void main(){
@@ -124,16 +129,14 @@ void main(){
 	EX1 = 1;
 	EX0 = 1;
 	IT1 = 1;
+	IT0 = 1;
 	//Delcare inputs and outputs
-	//P0 = 0xFF;
-	//P1 = 0x08;
-	//P3 = 0x0C;
 	LED0 = 0;
 	LED1 = 0;
 	//turn off LEDS
-	GREEN = 0;
-	YELLOW = 0;
-	RED = 0;
+	GREEN = 1;
+	YELLOW = 1;
+	RED = 1;
 	//Turn off laser
 	LaserSwitch = 0;
 	
@@ -142,28 +145,13 @@ void main(){
 	//displayDisarmed();
 	//countDownTimer(7);
 	//intruderState();
-		while(1){
-				turnOnLaser();
-				delay();
-				delay();
-				turnOffLaser();
-				delay();
-				delay();
-				turnOnLaser();
-				delay();
-				delay();
-				turnOffLaser();
-				delay();
-				delay();
-				turnOnLaser();		
-				countDownTimer(12);
-				turnOnLaser();
-				intruderState();
-			//disarmedState();
-			//updateTimerState();
-			//armedState();
-			//countdownState();
-			//intruderState();
+	displayTime(countDownNum);
+		while(1)
+		{
+			turnOnLaser();
+			delay();
+			turnOffLaser();
+			delay();
 		}
 		
 	
@@ -172,32 +160,82 @@ void main(){
 
 }
 /**************************************************************/
-
+////////////////////////////////////////////////////////////////
+//                     State Functions                        //
+////////////////////////////////////////////////////////////////
 
 void disarmedState()
 {
-	displayTime(time);
+	displayTime(countDownNum);
+	displayDisarmed();
+	turnOffLaser();
+	//turn off intruder LEDs
+	LED0 = 0;
+	LED1 = 0;
+	//update timer LEDs
+	GREEN = 0;
+	RED = 1;
+	YELLOW = 1;
+	
 }
 void updateTimerState() //Fixme: No need for this state? Will wait for John's lecture
 {
 	//FIXME: will the encoder just take it to this state?
-	displayTime(time);
-	delay(); //Short delay so that 
+	update = 0;//recognize that it is updating
+	countDownNum = countDownNum + dir;//inc or decrease, always
+	
+	//check if in bounds
+	if(countDownNum > 99)
+	{
+		countDownNum = 99;
+	}
+	if(countDownNum < 7)
+	{
+		countDownNum = 7;
+	}
+	updateLCD(countDownNum);//updateLCD with new num
 }
 void armedState()
 {
-	displayTime(time);
+	displayArmed();
+	turnOnLaser();
+	timer = 1;//not zero
+	updateLCD(prevTime);
 }
 void countdownState()
 {
-	countDownTimer(time);
+	countDownNum = countDownNum - 1;//decrease counter
+	updateLCD(countDownNum);
+	//update timer flag
+	if(countDownNum == 0)
+	{
+		timer = 0;
+	}
+	//update LEDs
+	if(countDownNum >= 7)//green
+	{
+		GREEN = 0;
+		YELLOW = 1;
+		RED = 1;
+	}
+	else if(countDownNum >= 4 && countDownNum <= 6)//yellow
+	{
+		GREEN = 1;
+		YELLOW = 0;
+		RED = 1;
+	}
+	else//RED
+	{
+		GREEN = 1;
+		YELLOW = 1;
+		RED = 0;
+	}
+	
 }
 void intruderState()
 {
 	displayIntruder();
-	delay();
-	//displayArmed();
-	for(;;)
+	while(ARM == 1)//alternate LEDs and don't change states
 	{
 		LED0 = 1;
 		LED1 = 0;
@@ -277,8 +315,14 @@ void lcdready(){
 	rw = 0;
 }
 
-void updateLCD()
+void updateLCD(unsigned int time)//updates numbers
 {
+	char msb = (time/10)+48;
+	char lsb = (time%10)+48;
+		//Write to start of number on first line from left to right
+	write_to_lcd(0x86,COMMAND); 
+	write_to_lcd(msb,LCD_DATA); 
+	write_to_lcd(lsb,LCD_DATA); 
 }
 
 void displayArmed()
@@ -357,29 +401,29 @@ void countDownTimer(int time)
 		//turn on and off LEDS
 		if(msb > 0x30 )//greater than 10, green
 		{
-			GREEN = 1;
-			YELLOW = 0;
-			RED = 0;
+			GREEN = 0;
+			YELLOW = 1;
+			RED = 1;
 		}
 		else
 		{
 			if(lsb >= 0x34 && lsb <= 0x36)//4-6 yellow
 			{
-				GREEN = 0;
-				YELLOW = 1;
-				RED = 0;
-			}
-			else if(lsb >= 0x30 && lsb <= 0x33)//0-3 red
-			{
-				GREEN = 0;
+				GREEN = 1;
 				YELLOW = 0;
 				RED = 1;
 			}
-			else//7-9 green
+			else if(lsb >= 0x30 && lsb <= 0x33)//0-3 red
 			{
 				GREEN = 1;
-				YELLOW = 0;
+				YELLOW = 1;
 				RED = 0;
+			}
+			else//7-9 green
+			{
+				GREEN = 0;
+				YELLOW = 1;
+				RED = 1;
 			}
 		}
 		
