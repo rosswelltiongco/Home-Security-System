@@ -85,10 +85,10 @@
         <yPos>-1</yPos>
       </MaxPosition>
       <NormalPosition>
-        <Top>182</Top>
-        <Left>182</Left>
-        <Right>1462</Right>
-        <Bottom>922</Bottom>
+        <Top>102</Top>
+        <Left>-524</Left>
+        <Right>756</Right>
+        <Bottom>842</Bottom>
       </NormalPosition>
     </WindowPosition>
     <MDIClientArea>
@@ -1749,11 +1749,11 @@
       <ActiveTab>0</ActiveTab>
       <Doc>
         <Name>.\Home_Security_System.c</Name>
-        <ColumnNumber>14</ColumnNumber>
-        <TopLine>145</TopLine>
-        <CurrentLine>152</CurrentLine>
+        <ColumnNumber>12</ColumnNumber>
+        <TopLine>197</TopLine>
+        <CurrentLine>256</CurrentLine>
         <Folding>1</Folding>
-        <ContractedFolders>46,54,58,67,104,167,181,198,205,235,288,297,303,339,350</ContractedFolders>
+        <ContractedFolders>47,59,370,379,385,421,432</ContractedFolders>
         <PaneID>0</PaneID>
       </Doc>
     </MDIGroup>

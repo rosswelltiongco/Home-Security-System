@@ -40,8 +40,9 @@ unsigned int time = 50; //  Default:50 (99-7)/2 = 46, rounded up
 unsigned int delayVal = 0;
 
 //bit variables to keep track of state
-bit ARMED = 0;
+bit ARMED = 0;//countdown finishes
 bit timer;
+bit Laser_Break = 0;
 
 //Interrupt functions
 void timer1(void) interrupt 3{//50ms 
@@ -53,7 +54,7 @@ void timer1(void) interrupt 3{//50ms
 
 void breakBeam() interrupt 2//senses if beam is broken
 {
-	RED = ~RED;
+	Laser_Break = 1;//flag to check if beam is broken
 }
 void delay()//delay 1 second
 {
@@ -73,7 +74,15 @@ void delayHalf()//delay 0.5 second
 	}
 	TR1 = 0;
 }
-
+void delayOneTen()
+{
+	delayVal = 3;
+	while(delayVal > 0)
+	{
+		TR1 = 1;
+	}
+	TR1 = 0;
+}
 //State Functions
 void disarmedState();
 void updateTimerState();
@@ -113,7 +122,16 @@ void encoder() interrupt 0//
 	}
 	update = 1;//update flag, interrupt will always show what direction
 }
-
+/**************************************************************/
+enum states//5 states
+{
+	disarmed_state,
+	update_timer_state,
+	armed_state,
+	countdown_state,
+	intruder_state
+};
+enum states state = disarmed_state;
 /**************************************************************/
 void main(){
 	//Interrupt enable
@@ -148,10 +166,70 @@ void main(){
 	displayTime(countDownNum);
 		while(1)
 		{
-			turnOnLaser();
-			delay();
-			turnOffLaser();
-			delay();
+			switch(state)
+			{
+				case disarmed_state:
+					//call function
+					disarmedState();
+					//next state logic
+					if(update == 1)
+					{
+						state = update_timer_state;
+					}
+					if(ARM == 1)
+					{
+						prevTime = countDownNum;//save previous value
+						state = countdown_state;
+					}
+					break;
+				case update_timer_state:
+					//call function
+					updateTimerState();
+					//next state logic
+					state = disarmed_state;
+					break;
+				case armed_state:
+					//call function
+					armedState();
+					//next state logic
+					if(ARM == 0)
+					{
+						state = disarmed_state;
+					}
+					if(ARMED == 1 && Laser_Break == 1)
+					{
+						state = countdown_state;
+					}
+					break;
+				case countdown_state:
+					//call function
+					countdownState();
+					//next state logic
+					if(ARM == 0)
+					{
+						state = disarmed_state;
+					}
+					if(ARMED == 0 && timer == 0)
+					{
+						state = armed_state;
+					}
+					if(ARMED == 1 && timer == 0)//already armed and countdown is zero
+					{
+						state = intruder_state;
+					}
+					break;
+				case intruder_state:
+					//call function
+					intruderState();
+					//next state logic
+					if(ARM == 0)
+					{
+						state = disarmed_state;
+					}
+					break;
+				default:
+					state = disarmed_state;
+			}
 		}
 		
 	
@@ -166,9 +244,11 @@ void main(){
 
 void disarmedState()
 {
-	displayTime(countDownNum);
+	//displayTime(countDownNum);
+	delayOneTen();
 	displayDisarmed();
 	turnOffLaser();
+	ARMED = 0;
 	//turn off intruder LEDs
 	LED0 = 0;
 	LED1 = 0;
@@ -194,12 +274,14 @@ void updateTimerState() //Fixme: No need for this state? Will wait for John's le
 		countDownNum = 7;
 	}
 	updateLCD(countDownNum);//updateLCD with new num
+	delayOneTen();
 }
 void armedState()
 {
 	displayArmed();
 	turnOnLaser();
 	timer = 1;//not zero
+	ARMED = 1;//armed flag
 	updateLCD(prevTime);
 }
 void countdownState()
