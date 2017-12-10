@@ -11,6 +11,7 @@
 //Declaring Port Pins
 //P0
 sbit ARM = P0^0;
+sbit ALARM = P0^1;
 //P1
 sbit LED0 = P1^0;
 sbit LED1 = P1^1;
@@ -274,6 +275,7 @@ void disarmedState()
 {
 	//displayTime(countDownNum);
 	delayOneTen();
+	turnOffAlarm();
 	displayDisarmed();
 	turnOffLaser();
 	ARMED = 0;
@@ -358,9 +360,11 @@ void intruderState()
 	displayIntruder();
 	while(ARM == 1)//alternate LEDs and don't change states
 	{
+		turnOnAlarm();
 		LED0 = 1;
 		LED1 = 0;
 		delayHalf();
+		turnOffAlarm();
 		LED0 = 0;
 		LED1 = 1;
 		delayHalf();
@@ -491,89 +495,14 @@ void turnOnLaser()
 }
 void turnOffLaser()
 {
+	
 	LaserSwitch = 0;
 }
-void countDownTimer(int time)
-{
-	unsigned int count;
-	
-	//Converting and separating to what was passed in
-	char msb = (time/10)+48;
-	char lsb = (time%10)+48;
-	
-  unsigned char code timer[]="Timer:NA seconds";
-  unsigned char t = 0;                                                                            
-	
-	//Writing first line
-	write_to_lcd(0x80,COMMAND); //Move to start of first line
-	while (timer[t]!='\0') 
-   write_to_lcd(timer[t++],LCD_DATA);
-	
-	
-	for (count = time; count >= 0; count--){		
-		if (lsb < 0x30){
-			lsb = 0x39;
-			msb--;
-			if (msb < 0x30){
-				msb = 0x39;
-			}
-		}
-		
-		//Write to start of number on first line from left to right
-		write_to_lcd(0x86,COMMAND); 
-		write_to_lcd(msb,LCD_DATA);
-		write_to_lcd(lsb,LCD_DATA);
-		
-		//turn on and off LEDS
-		if(msb > 0x30 )//greater than 10, green
-		{
-			GREEN = 0;
-			YELLOW = 1;
-			RED = 1;
-		}
-		else
-		{
-			if(lsb >= 0x34 && lsb <= 0x36)//4-6 yellow
-			{
-				GREEN = 1;
-				YELLOW = 0;
-				RED = 1;
-			}
-			else if(lsb >= 0x30 && lsb <= 0x33)//0-3 red
-			{
-				GREEN = 1;
-				YELLOW = 1;
-				RED = 0;
-			}
-			else//7-9 green
-			{
-				GREEN = 0;
-				YELLOW = 1;
-				RED = 1;
-			}
-		}
-		
-		//Keeps both numbers at 00
-		if (msb == 0x30 && lsb == 0x30)
-		{
-			break;
-		}
-		
-		lsb--; //Deccrementing least significant bit
-		
-		delay(); //1 second delay	 
-	}
-}
-
 void turnOnAlarm()
 {
+	ALARM = 1;
 }
 void turnOffAlarm()
 {
-}
-void soundAlarm()
-{
-}
-void resetTimer()
-{
+	ALARM = 0;
 }

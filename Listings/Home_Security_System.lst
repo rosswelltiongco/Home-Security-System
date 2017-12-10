@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 1   
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE HOME_SECURITY_SYSTEM
@@ -21,599 +21,526 @@ line level    source
   11          //Declaring Port Pins
   12          //P0
   13          sbit ARM = P0^0;
-  14          //P1
-  15          sbit LED0 = P1^0;
-  16          sbit LED1 = P1^1;
-  17          sbit LaserSwitch = P1^2;
-  18          sbit EncB = P1^3;
-  19          sbit GREEN = P1^5;
-  20          sbit YELLOW = P1^6;
-  21          sbit RED = P1^7;
-  22          //P2
-  23          #define ldata P2
-  24          sbit busy = P2^7; // connected to DB7 on the LCD
-  25          //P3
-  26          sbit EncA = P3^2;
-  27          sbit BREAK = P3^3;
-  28          sbit rw = P3^5;
-  29          sbit rs = P3^6;
-  30          sbit en = P3^7;
-  31          
-  32          //variables
-  33          unsigned int countDownNum = 7;
-  34          unsigned int prevTime = 7;
-  35          
-  36          unsigned int dir;//1 = cw, -1 = ccw
-  37          bit update;//0 = stay same,1 = update
-  38          
-  39          unsigned int time = 50; //  Default:50 (99-7)/2 = 46, rounded up
-  40          unsigned int delayVal = 0;
-  41          
-  42          //bit variables to keep track of state
-  43          bit ARMED = 0;//countdown finishes
-  44          bit timer;
-  45          bit Laser_Break = 0;
-  46          bit write = 1;
-  47          
-  48          //Interrupt functions
-  49          void timer1(void) interrupt 3{//50ms 
-  50   1        TR1 = 0;//turn timer off
-  51   1        delayVal = delayVal - 1;//decrease delay value
-  52   1        TH1 = 0x4B;//initial values
-  53   1        TL1 = 0x92;
-  54   1      }
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 2   
+  14          sbit ALARM = P0^1;
+  15          //P1
+  16          sbit LED0 = P1^0;
+  17          sbit LED1 = P1^1;
+  18          sbit LaserSwitch = P1^2;
+  19          sbit EncB = P1^3;
+  20          sbit GREEN = P1^5;
+  21          sbit YELLOW = P1^6;
+  22          sbit RED = P1^7;
+  23          //P2
+  24          #define ldata P2
+  25          sbit busy = P2^7; // connected to DB7 on the LCD
+  26          //P3
+  27          sbit EncA = P3^2;
+  28          sbit BREAK = P3^3;
+  29          sbit rw = P3^5;
+  30          sbit rs = P3^6;
+  31          sbit en = P3^7;
+  32          
+  33          //variables
+  34          unsigned int countDownNum = 7;
+  35          unsigned int prevTime = 7;
+  36          
+  37          unsigned int dir;//1 = cw, -1 = ccw
+  38          bit update;//0 = stay same,1 = update
+  39          
+  40          unsigned int time = 50; //  Default:50 (99-7)/2 = 46, rounded up
+  41          unsigned int delayVal = 0;
+  42          
+  43          //bit variables to keep track of state
+  44          bit ARMED = 0;//countdown finishes
+  45          bit timer;
+  46          bit Laser_Break = 0;
+  47          bit write = 1;
+  48          
+  49          //Interrupt functions
+  50          void timer1(void) interrupt 3{//50ms 
+  51   1        TR1 = 0;//turn timer off
+  52   1        delayVal = delayVal - 1;//decrease delay value
+  53   1        TH1 = 0x4B;//initial values
+  54   1        TL1 = 0x92;
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 2   
 
-  55          
-  56          void breakBeam() interrupt 2//senses if beam is broken
-  57          {
-  58   1        if(ARMED == 1)
-  59   1        {
-  60   2          Laser_Break = 1;//flag to check if beam is broken
-  61   2        }
-  62   1        else
-  63   1        {
-  64   2          Laser_Break = 0;
-  65   2        }
-  66   1      }
-  67          void delay()//delay 1 second
-  68          {
-  69   1        delayVal = 20;
-  70   1        while(delayVal > 0)
-  71   1        {
-  72   2          TR1 = 1;
-  73   2        }
-  74   1        TR1 = 0;
-  75   1      }
-  76          void delayHalf()//delay 0.5 second
-  77          {
-  78   1        delayVal = 10;
-  79   1        while(delayVal > 0)
-  80   1        {
-  81   2          TR1 = 1;
-  82   2        }
-  83   1        TR1 = 0;
-  84   1      }
-  85          void delayOneTen()
-  86          {
-  87   1        delayVal = 3;
-  88   1        while(delayVal > 0)
-  89   1        {
-  90   2          TR1 = 1;
-  91   2        }
-  92   1        TR1 = 0;
-  93   1      }
-  94          //State Functions
-  95          void disarmedState();
-  96          void updateTimerState();
-  97          void armedState();
-  98          void countdownState();
-  99          void intruderState();
- 100          
- 101          //Function Prototypes
- 102          void init_lcd();//initialize LCD
- 103          void write_to_lcd(unsigned char value, bit mode);//write data or command
- 104          void MSDelay(unsigned int itime);//delay 1 ms
- 105          void lcdready(void);//check if lcd is ready to write to
- 106          void displayTime(unsigned int time);
- 107          void updateLCD(unsigned int time);//updates numbers
- 108          void displayArmed();
- 109          void displayDisarmed();
- 110          void displayIntruder();
- 111          void turnOnLaser();
- 112          void turnOffLaser();
- 113          void countDownTimer(int num);
- 114          void turnOnAlarm();
- 115          void turnOffAlarm();
- 116          void soundAlarm();
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 3   
+  55   1      }
+  56          
+  57          void breakBeam() interrupt 2//senses if beam is broken
+  58          {
+  59   1        if(ARMED == 1)
+  60   1        {
+  61   2          Laser_Break = 1;//flag to check if beam is broken
+  62   2        }
+  63   1        else
+  64   1        {
+  65   2          Laser_Break = 0;
+  66   2        }
+  67   1      }
+  68          void delay()//delay 1 second
+  69          {
+  70   1        delayVal = 20;
+  71   1        while(delayVal > 0)
+  72   1        {
+  73   2          TR1 = 1;
+  74   2        }
+  75   1        TR1 = 0;
+  76   1      }
+  77          void delayHalf()//delay 0.5 second
+  78          {
+  79   1        delayVal = 10;
+  80   1        while(delayVal > 0)
+  81   1        {
+  82   2          TR1 = 1;
+  83   2        }
+  84   1        TR1 = 0;
+  85   1      }
+  86          void delayOneTen()
+  87          {
+  88   1        delayVal = 3;
+  89   1        while(delayVal > 0)
+  90   1        {
+  91   2          TR1 = 1;
+  92   2        }
+  93   1        TR1 = 0;
+  94   1      }
+  95          //State Functions
+  96          void disarmedState();
+  97          void updateTimerState();
+  98          void armedState();
+  99          void countdownState();
+ 100          void intruderState();
+ 101          
+ 102          //Function Prototypes
+ 103          void init_lcd();//initialize LCD
+ 104          void write_to_lcd(unsigned char value, bit mode);//write data or command
+ 105          void MSDelay(unsigned int itime);//delay 1 ms
+ 106          void lcdready(void);//check if lcd is ready to write to
+ 107          void displayTime(unsigned int time);
+ 108          void updateLCD(unsigned int time);//updates numbers
+ 109          void displayArmed();
+ 110          void displayDisarmed();
+ 111          void displayIntruder();
+ 112          void turnOnLaser();
+ 113          void turnOffLaser();
+ 114          void countDownTimer(int num);
+ 115          void turnOnAlarm();
+ 116          void turnOffAlarm();
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 3   
 
- 117          void resetTimer();
- 118          
+ 117          void soundAlarm();
+ 118          void resetTimer();
  119          
- 120          void encoder() interrupt 0//
- 121          { 
- 122   1        if(EncB == 1)//cw
- 123   1        {
- 124   2          dir = 1;
- 125   2        }
- 126   1        else//ccw
- 127   1        {
- 128   2          dir = -1;
- 129   2        }
- 130   1        update = 1;//update flag, interrupt will always show what direction
- 131   1      }
- 132          /**************************************************************/
- 133          enum states//5 states
- 134          {
- 135            disarmed_state,
- 136            update_timer_state,
- 137            armed_state,
- 138            countdown_state,
- 139            intruder_state
- 140          };
- 141          enum states state = disarmed_state;
- 142          /**************************************************************/
- 143          void main()
- 144          {
- 145   1        //Interrupt enable
- 146   1        EA = 1;
- 147   1        ET1 = 1;
- 148   1        //Timer enable
- 149   1        TMOD = 0x10;//timer 1 mode 1
- 150   1        TH1 = 0x4B;//high bit value
- 151   1        TL1 = 0x92;//low bit value
- 152   1        TR1 = 0;//turn off timer 0
- 153   1        
- 154   1        //enable external interrupts
- 155   1        EX1 = 1;
- 156   1        EX0 = 1;
- 157   1        IT1 = 1;
- 158   1        IT0 = 1;
- 159   1        //Delcare inputs and outputs
- 160   1        LED0 = 0;
- 161   1        LED1 = 0;
- 162   1        //turn off LEDS
- 163   1        GREEN = 1;
- 164   1        YELLOW = 1;
- 165   1        RED = 1;
- 166   1        //Turn off laser
- 167   1        LaserSwitch = 0;
- 168   1        
- 169   1        init_lcd();
- 170   1        //countDownTimer(12);
- 171   1        //displayDisarmed();
- 172   1        //countDownTimer(7);
- 173   1        //intruderState();
- 174   1        displayTime(countDownNum);
- 175   1          while(1)
- 176   1          {
- 177   2            switch(state)
- 178   2            {
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 4   
+ 120          
+ 121          void encoder() interrupt 0//
+ 122          { 
+ 123   1        if(EncB == 1)//cw
+ 124   1        {
+ 125   2          dir = 1;
+ 126   2        }
+ 127   1        else//ccw
+ 128   1        {
+ 129   2          dir = -1;
+ 130   2        }
+ 131   1        update = 1;//update flag, interrupt will always show what direction
+ 132   1      }
+ 133          /**************************************************************/
+ 134          enum states//5 states
+ 135          {
+ 136            disarmed_state,
+ 137            update_timer_state,
+ 138            armed_state,
+ 139            countdown_state,
+ 140            intruder_state
+ 141          };
+ 142          enum states state = disarmed_state;
+ 143          /**************************************************************/
+ 144          void main()
+ 145          {
+ 146   1        //Interrupt enable
+ 147   1        EA = 1;
+ 148   1        ET1 = 1;
+ 149   1        //Timer enable
+ 150   1        TMOD = 0x10;//timer 1 mode 1
+ 151   1        TH1 = 0x4B;//high bit value
+ 152   1        TL1 = 0x92;//low bit value
+ 153   1        TR1 = 0;//turn off timer 0
+ 154   1        
+ 155   1        //enable external interrupts
+ 156   1        EX1 = 1;
+ 157   1        EX0 = 1;
+ 158   1        IT1 = 1;
+ 159   1        IT0 = 1;
+ 160   1        //Delcare inputs and outputs
+ 161   1        LED0 = 0;
+ 162   1        LED1 = 0;
+ 163   1        //turn off LEDS
+ 164   1        GREEN = 1;
+ 165   1        YELLOW = 1;
+ 166   1        RED = 1;
+ 167   1        //Turn off laser
+ 168   1        LaserSwitch = 0;
+ 169   1        
+ 170   1        init_lcd();
+ 171   1        //countDownTimer(12);
+ 172   1        //displayDisarmed();
+ 173   1        //countDownTimer(7);
+ 174   1        //intruderState();
+ 175   1        displayTime(countDownNum);
+ 176   1          while(1)
+ 177   1          {
+ 178   2            switch(state)
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 4   
 
- 179   3              case disarmed_state:
- 180   3                //call function
- 181   3                if(write == 1)//will only write to LCD once unless it needs to update
- 182   3                {
- 183   4                  disarmedState();
- 184   4                }
- 185   3                write = 0;
- 186   3                //next state logic
- 187   3                if(update == 1)//update flag check whether rotary encoder interrupt has been called
- 188   3                {
- 189   4                  state = update_timer_state;
- 190   4                }
- 191   3                if(ARM == 1)//switch is high
- 192   3                {
- 193   4                  prevTime = countDownNum;//save previous value
- 194   4                  state = countdown_state;
- 195   4                }
- 196   3                break;
- 197   3              case update_timer_state:
- 198   3                //call function
- 199   3                updateTimerState();
- 200   3                //next state logic
- 201   3                state = disarmed_state;
- 202   3                write = 1;
- 203   3                break;
- 204   3              case armed_state:
- 205   3                //call function
- 206   3                armedState();
- 207   3                //next state logic
- 208   3                if(ARM == 0)
- 209   3                {
- 210   4                  state = disarmed_state;
- 211   4                  write = 1;
- 212   4                }
- 213   3                while(Laser_Break != 1)//stay in state until laser is broken
- 214   3                {
- 215   4                  //YELLOW = 0;
- 216   4                  //do nothing until laser is broken
- 217   4                }
- 218   3                //YELLOW = 1;
- 219   3                state = countdown_state;
- 220   3                break;
- 221   3              case countdown_state:
- 222   3                //call function
- 223   3                countdownState();
- 224   3                //next state logic
- 225   3                if(ARM == 0)//switch is low
- 226   3                {
- 227   4                  countDownNum = prevTime;
- 228   4                  updateLCD(countDownNum);
- 229   4                  state = disarmed_state;
- 230   4                  write = 1;
- 231   4                }
- 232   3                if(ARMED == 0 && timer == 0)//not armed and timer is zero
- 233   3                {
- 234   4                  updateLCD(countDownNum);
- 235   4                  state = armed_state;
- 236   4                  //timer = 1;
- 237   4                }
- 238   3                if(ARMED == 1 && timer == 0 && Laser_Break == 1)//already armed and countdown is zero and laser is br
+ 179   2            {
+ 180   3              case disarmed_state:
+ 181   3                //call function
+ 182   3                if(write == 1)//will only write to LCD once unless it needs to update
+ 183   3                {
+ 184   4                  disarmedState();
+ 185   4                }
+ 186   3                write = 0;
+ 187   3                //next state logic
+ 188   3                if(update == 1)//update flag check whether rotary encoder interrupt has been called
+ 189   3                {
+ 190   4                  state = update_timer_state;
+ 191   4                }
+ 192   3                if(ARM == 1)//switch is high
+ 193   3                {
+ 194   4                  prevTime = countDownNum;//save previous value
+ 195   4                  state = countdown_state;
+ 196   4                }
+ 197   3                break;
+ 198   3              case update_timer_state:
+ 199   3                //call function
+ 200   3                updateTimerState();
+ 201   3                //next state logic
+ 202   3                state = disarmed_state;
+ 203   3                write = 1;
+ 204   3                break;
+ 205   3              case armed_state:
+ 206   3                //call function
+ 207   3                armedState();
+ 208   3                //next state logic
+ 209   3                if(ARM == 0)
+ 210   3                {
+ 211   4                  state = disarmed_state;
+ 212   4                  write = 1;
+ 213   4                }
+ 214   3                while(Laser_Break != 1)//stay in state until laser is broken
+ 215   3                {
+ 216   4                  //YELLOW = 0;
+ 217   4                  //do nothing until laser is broken
+ 218   4                }
+ 219   3                //YELLOW = 1;
+ 220   3                state = countdown_state;
+ 221   3                break;
+ 222   3              case countdown_state:
+ 223   3                //call function
+ 224   3                countdownState();
+ 225   3                //next state logic
+ 226   3                if(ARM == 0)//switch is low
+ 227   3                {
+ 228   4                  countDownNum = prevTime;
+ 229   4                  updateLCD(countDownNum);
+ 230   4                  state = disarmed_state;
+ 231   4                  write = 1;
+ 232   4                }
+ 233   3                if(ARMED == 0 && timer == 0)//not armed and timer is zero
+ 234   3                {
+ 235   4                  updateLCD(countDownNum);
+ 236   4                  state = armed_state;
+ 237   4                  //timer = 1;
+ 238   4                }
+ 239   3                if(ARMED == 1 && timer == 0 && Laser_Break == 1)//already armed and countdown is zero and laser is br
              -oken
- 239   3                {
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 5   
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 5   
 
- 240   4                  //turnOnLaser();
- 241   4                  state = intruder_state;
- 242   4                  timer = 1;
- 243   4                }
- 244   3                break;
- 245   3              case intruder_state:
- 246   3                //call function
- 247   3                intruderState();
- 248   3                //next state logic
- 249   3                if(ARM == 0)
- 250   3                {
- 251   4                  countDownNum = prevTime;
- 252   4                  updateLCD(countDownNum);//update LCD to original value
- 253   4                  state = disarmed_state;
- 254   4                  write = 1;
- 255   4                }
- 256   3                break;
- 257   3              default:
- 258   3                state = disarmed_state;
- 259   3            }
- 260   2            delayOneTen();
- 261   2          }
- 262   1          
- 263   1        
+ 240   3                {
+ 241   4                  //turnOnLaser();
+ 242   4                  state = intruder_state;
+ 243   4                  timer = 1;
+ 244   4                }
+ 245   3                break;
+ 246   3              case intruder_state:
+ 247   3                //call function
+ 248   3                intruderState();
+ 249   3                //next state logic
+ 250   3                if(ARM == 0)
+ 251   3                {
+ 252   4                  countDownNum = prevTime;
+ 253   4                  updateLCD(countDownNum);//update LCD to original value
+ 254   4                  state = disarmed_state;
+ 255   4                  write = 1;
+ 256   4                }
+ 257   3                break;
+ 258   3              default:
+ 259   3                state = disarmed_state;
+ 260   3            }
+ 261   2            delayOneTen();
+ 262   2          }
+ 263   1          
  264   1        
- 265   1      
+ 265   1        
  266   1      
- 267   1      }
- 268          /**************************************************************/
- 269          ////////////////////////////////////////////////////////////////
- 270          //                     State Functions                        //
- 271          ////////////////////////////////////////////////////////////////
- 272          
- 273          void disarmedState()
- 274          {
- 275   1        //displayTime(countDownNum);
- 276   1        delayOneTen();
- 277   1        displayDisarmed();
- 278   1        turnOffLaser();
- 279   1        ARMED = 0;
- 280   1        //turn off intruder LEDs
- 281   1        LED0 = 0;
- 282   1        LED1 = 0;
- 283   1        //update timer LEDs
- 284   1        GREEN = 0;
- 285   1        RED = 1;
- 286   1        YELLOW = 1;
- 287   1        //laser break flag
- 288   1        Laser_Break = 0;
- 289   1        
- 290   1      }
- 291          void updateTimerState() //Fixme: No need for this state? Will wait for John's lecture
- 292          {
- 293   1        update = 0;//recognize that it is updating
- 294   1        countDownNum = countDownNum + dir;//inc or decrease, always
- 295   1        
- 296   1        //check if in bounds
- 297   1        if(countDownNum > 99)
- 298   1        {
- 299   2          countDownNum = 99;
- 300   2        }
- 301   1        if(countDownNum < 7)
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 6   
+ 267   1      
+ 268   1      }
+ 269          /**************************************************************/
+ 270          ////////////////////////////////////////////////////////////////
+ 271          //                     State Functions                        //
+ 272          ////////////////////////////////////////////////////////////////
+ 273          
+ 274          void disarmedState()
+ 275          {
+ 276   1        //displayTime(countDownNum);
+ 277   1        delayOneTen();
+ 278   1        turnOffAlarm();
+ 279   1        displayDisarmed();
+ 280   1        turnOffLaser();
+ 281   1        ARMED = 0;
+ 282   1        //turn off intruder LEDs
+ 283   1        LED0 = 0;
+ 284   1        LED1 = 0;
+ 285   1        //update timer LEDs
+ 286   1        GREEN = 0;
+ 287   1        RED = 1;
+ 288   1        YELLOW = 1;
+ 289   1        //laser break flag
+ 290   1        Laser_Break = 0;
+ 291   1        
+ 292   1      }
+ 293          void updateTimerState() //Fixme: No need for this state? Will wait for John's lecture
+ 294          {
+ 295   1        update = 0;//recognize that it is updating
+ 296   1        countDownNum = countDownNum + dir;//inc or decrease, always
+ 297   1        
+ 298   1        //check if in bounds
+ 299   1        if(countDownNum > 99)
+ 300   1        {
+ 301   2          countDownNum = 99;
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 6   
 
- 302   1        {
- 303   2          countDownNum = 7;
- 304   2        }
- 305   1        updateLCD(countDownNum);//updateLCD with new num
- 306   1        //delayOneTen();
- 307   1      }
- 308          void armedState()
- 309          {
- 310   1        displayArmed();
- 311   1        turnOnLaser();
- 312   1        delay();//delay turning on laser to catch up with system
- 313   1        timer = 1;//not zero
- 314   1        ARMED = 1;//armed flag
- 315   1        //updateLCD(prevTime);
- 316   1      }
- 317          void countdownState()
- 318          {
- 319   1        if(countDownNum > 0)
- 320   1        {
- 321   2          countDownNum = countDownNum - 1;//decrease counter
- 322   2        }
- 323   1        updateLCD(countDownNum);
- 324   1        //update timer flag
- 325   1        if(countDownNum == 0)
- 326   1        {
- 327   2          countDownNum = prevTime;
- 328   2          timer = 0;
- 329   2        }
- 330   1        else
- 331   1        {
- 332   2          timer = 1;
- 333   2        }
- 334   1        //update LEDs
- 335   1        if(countDownNum >= 7)//green
- 336   1        {
- 337   2          GREEN = 0;
- 338   2          YELLOW = 1;
- 339   2          RED = 1;
- 340   2        }
- 341   1        else if(countDownNum >= 4 && countDownNum <= 6)//yellow
- 342   1        {
- 343   2          GREEN = 1;
- 344   2          YELLOW = 0;
- 345   2          RED = 1;
- 346   2        }
- 347   1        else//RED
- 348   1        {
- 349   2          GREEN = 1;
- 350   2          YELLOW = 1;
- 351   2          RED = 0;
- 352   2        }
- 353   1        delay();
- 354   1        
- 355   1      }
- 356          void intruderState()
- 357          {
- 358   1        displayIntruder();
- 359   1        while(ARM == 1)//alternate LEDs and don't change states
- 360   1        {
- 361   2          LED0 = 1;
- 362   2          LED1 = 0;
- 363   2          delayHalf();
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 7   
+ 302   2        }
+ 303   1        if(countDownNum < 7)
+ 304   1        {
+ 305   2          countDownNum = 7;
+ 306   2        }
+ 307   1        updateLCD(countDownNum);//updateLCD with new num
+ 308   1        //delayOneTen();
+ 309   1      }
+ 310          void armedState()
+ 311          {
+ 312   1        displayArmed();
+ 313   1        turnOnLaser();
+ 314   1        delay();//delay turning on laser to catch up with system
+ 315   1        timer = 1;//not zero
+ 316   1        ARMED = 1;//armed flag
+ 317   1        //updateLCD(prevTime);
+ 318   1      }
+ 319          void countdownState()
+ 320          {
+ 321   1        if(countDownNum > 0)
+ 322   1        {
+ 323   2          countDownNum = countDownNum - 1;//decrease counter
+ 324   2        }
+ 325   1        updateLCD(countDownNum);
+ 326   1        //update timer flag
+ 327   1        if(countDownNum == 0)
+ 328   1        {
+ 329   2          countDownNum = prevTime;
+ 330   2          timer = 0;
+ 331   2        }
+ 332   1        else
+ 333   1        {
+ 334   2          timer = 1;
+ 335   2        }
+ 336   1        //update LEDs
+ 337   1        if(countDownNum >= 7)//green
+ 338   1        {
+ 339   2          GREEN = 0;
+ 340   2          YELLOW = 1;
+ 341   2          RED = 1;
+ 342   2        }
+ 343   1        else if(countDownNum >= 4 && countDownNum <= 6)//yellow
+ 344   1        {
+ 345   2          GREEN = 1;
+ 346   2          YELLOW = 0;
+ 347   2          RED = 1;
+ 348   2        }
+ 349   1        else//RED
+ 350   1        {
+ 351   2          GREEN = 1;
+ 352   2          YELLOW = 1;
+ 353   2          RED = 0;
+ 354   2        }
+ 355   1        delay();
+ 356   1        
+ 357   1      }
+ 358          void intruderState()
+ 359          {
+ 360   1        displayIntruder();
+ 361   1        while(ARM == 1)//alternate LEDs and don't change states
+ 362   1        {
+ 363   2          turnOnAlarm();
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 7   
 
- 364   2          LED0 = 0;
- 365   2          LED1 = 1;
+ 364   2          LED0 = 1;
+ 365   2          LED1 = 0;
  366   2          delayHalf();
- 367   2        }
- 368   1        //updateLCD(prevTime);
- 369   1      }
- 370          
- 371          
- 372          
- 373          
- 374          ////////////////////////////////////////////////////////////////
- 375          //               LCD  Helper Functions                        //
- 376          ////////////////////////////////////////////////////////////////
- 377          void displayTime(unsigned int time)
- 378          {
- 379   1        //Converting and separating to what was passed in
- 380   1        char msb = (time/10)+48;
- 381   1        char lsb = (time%10)+48;
- 382   1        
- 383   1        unsigned char code timer[]="Timer:NA seconds";
- 384   1        unsigned char t = 0;                                                                            
- 385   1        
- 386   1        //Writing first line
- 387   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
- 388   1        while (timer[t]!='\0') 
- 389   1         write_to_lcd(timer[t++],LCD_DATA);
- 390   1      
- 391   1        //Write to start of number on first line from left to right
- 392   1        write_to_lcd(0x86,COMMAND); 
- 393   1        write_to_lcd(msb,LCD_DATA); 
- 394   1        write_to_lcd(lsb,LCD_DATA); 
- 395   1      }
- 396          
- 397          
- 398          //setup LCD for required display
- 399          void init_lcd()
- 400          {
- 401   1        //all instructions here are commands, not data
- 402   1        
- 403   1        write_to_lcd(0x38,COMMAND);
- 404   1      
- 405   1        write_to_lcd(0x0E,COMMAND);
+ 367   2          turnOffAlarm();
+ 368   2          LED0 = 0;
+ 369   2          LED1 = 1;
+ 370   2          delayHalf();
+ 371   2        }
+ 372   1        //updateLCD(prevTime);
+ 373   1      }
+ 374          
+ 375          
+ 376          
+ 377          
+ 378          ////////////////////////////////////////////////////////////////
+ 379          //               LCD  Helper Functions                        //
+ 380          ////////////////////////////////////////////////////////////////
+ 381          void displayTime(unsigned int time)
+ 382          {
+ 383   1        //Converting and separating to what was passed in
+ 384   1        char msb = (time/10)+48;
+ 385   1        char lsb = (time%10)+48;
+ 386   1        
+ 387   1        unsigned char code timer[]="Timer:NA seconds";
+ 388   1        unsigned char t = 0;                                                                            
+ 389   1        
+ 390   1        //Writing first line
+ 391   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
+ 392   1        while (timer[t]!='\0') 
+ 393   1         write_to_lcd(timer[t++],LCD_DATA);
+ 394   1      
+ 395   1        //Write to start of number on first line from left to right
+ 396   1        write_to_lcd(0x86,COMMAND); 
+ 397   1        write_to_lcd(msb,LCD_DATA); 
+ 398   1        write_to_lcd(lsb,LCD_DATA); 
+ 399   1      }
+ 400          
+ 401          
+ 402          //setup LCD for required display
+ 403          void init_lcd()
+ 404          {
+ 405   1        //all instructions here are commands, not data
  406   1        
- 407   1        write_to_lcd(0x06,COMMAND);
- 408   1        //clear display and return cursor to home position
- 409   1        write_to_lcd(0x01,COMMAND);
- 410   1      }
- 411          
- 412          void write_to_lcd(unsigned char value, bit mode)
- 413          {
- 414   1        lcdready();
- 415   1        ldata = value;
- 416   1        rs = mode; //1 for data, 0 for command
- 417   1        rw = 0;
- 418   1        en = 1;
- 419   1        MSDelay(1);
- 420   1        en = 0;
- 421   1      }
- 422          void MSDelay(unsigned int itime)
- 423          {
- 424   1        unsigned i, j;
- 425   1        for(i=0;i<itime;i++)
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 8   
+ 407   1        write_to_lcd(0x38,COMMAND);
+ 408   1      
+ 409   1        write_to_lcd(0x0E,COMMAND);
+ 410   1        
+ 411   1        write_to_lcd(0x06,COMMAND);
+ 412   1        //clear display and return cursor to home position
+ 413   1        write_to_lcd(0x01,COMMAND);
+ 414   1      }
+ 415          
+ 416          void write_to_lcd(unsigned char value, bit mode)
+ 417          {
+ 418   1        lcdready();
+ 419   1        ldata = value;
+ 420   1        rs = mode; //1 for data, 0 for command
+ 421   1        rw = 0;
+ 422   1        en = 1;
+ 423   1        MSDelay(1);
+ 424   1        en = 0;
+ 425   1      }
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 8   
 
- 426   1          for(j=0;j<1275;j++);
- 427   1      
- 428   1      }
- 429          void lcdready()
- 430          {
- 431   1        busy = 1;
- 432   1        en = 1;
- 433   1        rs = 0;//command
- 434   1        rw = 1;//read command
- 435   1        while(busy){
- 436   2          en = 0;
- 437   2          MSDelay(1);
- 438   2          en = 1;
- 439   2        }
- 440   1        en = 0;
- 441   1        rw = 0;
- 442   1      }
- 443          
- 444          void updateLCD(unsigned int time)//updates numbers
- 445          {
- 446   1        char msb = (time/10)+48;
- 447   1        char lsb = (time%10)+48;
- 448   1          //Write to start of number on first line from left to right
- 449   1        write_to_lcd(0x86,COMMAND); 
- 450   1        write_to_lcd(msb,LCD_DATA); 
- 451   1        write_to_lcd(lsb,LCD_DATA); 
- 452   1      }
- 453          
- 454          void displayArmed()
- 455          {
- 456   1        unsigned char code msg[]="ARMED     ";
- 457   1        unsigned char i=0;                                                                                 
- 458   1      
- 459   1        //Writing to second line
- 460   1        write_to_lcd(0xC0,COMMAND);
- 461   1        
- 462   1        while (msg[i]!='\0') 
- 463   1         write_to_lcd(msg[i++],LCD_DATA);
- 464   1      }
- 465          void displayDisarmed()
- 466          {
- 467   1        unsigned char code msg[]="DISARMED  ";
- 468   1        unsigned char i=0;                                                                                      
- 469   1      
- 470   1        //Writing to second line
- 471   1        write_to_lcd(0xC0,COMMAND);
- 472   1        
- 473   1        while (msg[i]!='\0') 
- 474   1         write_to_lcd(msg[i++],LCD_DATA);
- 475   1      }
- 476          void displayIntruder()
- 477          {
- 478   1        unsigned char code msg[]="INTRUDER!";
- 479   1        unsigned char i=0;                                                                                    
- 480   1      
- 481   1        //Writing to second line
- 482   1        write_to_lcd(0xC0,COMMAND);
- 483   1        
- 484   1        while (msg[i]!='\0') 
- 485   1         write_to_lcd(msg[i++],LCD_DATA);
- 486   1      }
- 487          
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 9   
+ 426          void MSDelay(unsigned int itime)
+ 427          {
+ 428   1        unsigned i, j;
+ 429   1        for(i=0;i<itime;i++)
+ 430   1          for(j=0;j<1275;j++);
+ 431   1      
+ 432   1      }
+ 433          void lcdready()
+ 434          {
+ 435   1        busy = 1;
+ 436   1        en = 1;
+ 437   1        rs = 0;//command
+ 438   1        rw = 1;//read command
+ 439   1        while(busy){
+ 440   2          en = 0;
+ 441   2          MSDelay(1);
+ 442   2          en = 1;
+ 443   2        }
+ 444   1        en = 0;
+ 445   1        rw = 0;
+ 446   1      }
+ 447          
+ 448          void updateLCD(unsigned int time)//updates numbers
+ 449          {
+ 450   1        char msb = (time/10)+48;
+ 451   1        char lsb = (time%10)+48;
+ 452   1          //Write to start of number on first line from left to right
+ 453   1        write_to_lcd(0x86,COMMAND); 
+ 454   1        write_to_lcd(msb,LCD_DATA); 
+ 455   1        write_to_lcd(lsb,LCD_DATA); 
+ 456   1      }
+ 457          
+ 458          void displayArmed()
+ 459          {
+ 460   1        unsigned char code msg[]="ARMED     ";
+ 461   1        unsigned char i=0;                                                                                 
+ 462   1      
+ 463   1        //Writing to second line
+ 464   1        write_to_lcd(0xC0,COMMAND);
+ 465   1        
+ 466   1        while (msg[i]!='\0') 
+ 467   1         write_to_lcd(msg[i++],LCD_DATA);
+ 468   1      }
+ 469          void displayDisarmed()
+ 470          {
+ 471   1        unsigned char code msg[]="DISARMED  ";
+ 472   1        unsigned char i=0;                                                                                      
+ 473   1      
+ 474   1        //Writing to second line
+ 475   1        write_to_lcd(0xC0,COMMAND);
+ 476   1        
+ 477   1        while (msg[i]!='\0') 
+ 478   1         write_to_lcd(msg[i++],LCD_DATA);
+ 479   1      }
+ 480          void displayIntruder()
+ 481          {
+ 482   1        unsigned char code msg[]="INTRUDER!";
+ 483   1        unsigned char i=0;                                                                                    
+ 484   1      
+ 485   1        //Writing to second line
+ 486   1        write_to_lcd(0xC0,COMMAND);
+ 487   1        
+C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:55:51 PAGE 9   
 
- 488          void turnOnLaser()
- 489          {
- 490   1        LaserSwitch = 1;
- 491   1      }
- 492          void turnOffLaser()
+ 488   1        while (msg[i]!='\0') 
+ 489   1         write_to_lcd(msg[i++],LCD_DATA);
+ 490   1      }
+ 491          
+ 492          void turnOnLaser()
  493          {
- 494   1        LaserSwitch = 0;
+ 494   1        LaserSwitch = 1;
  495   1      }
- 496          void countDownTimer(int time)
+ 496          void turnOffLaser()
  497          {
- 498   1        unsigned int count;
- 499   1        
- 500   1        //Converting and separating to what was passed in
- 501   1        char msb = (time/10)+48;
- 502   1        char lsb = (time%10)+48;
- 503   1        
- 504   1        unsigned char code timer[]="Timer:NA seconds";
- 505   1        unsigned char t = 0;                                                                            
- 506   1        
- 507   1        //Writing first line
- 508   1        write_to_lcd(0x80,COMMAND); //Move to start of first line
- 509   1        while (timer[t]!='\0') 
- 510   1         write_to_lcd(timer[t++],LCD_DATA);
- 511   1        
- 512   1        
- 513   1        for (count = time; count >= 0; count--){    
- 514   2          if (lsb < 0x30){
- 515   3            lsb = 0x39;
- 516   3            msb--;
- 517   3            if (msb < 0x30){
- 518   4              msb = 0x39;
- 519   4            }
- 520   3          }
- 521   2          
- 522   2          //Write to start of number on first line from left to right
- 523   2          write_to_lcd(0x86,COMMAND); 
- 524   2          write_to_lcd(msb,LCD_DATA);
- 525   2          write_to_lcd(lsb,LCD_DATA);
- 526   2          
- 527   2          //turn on and off LEDS
- 528   2          if(msb > 0x30 )//greater than 10, green
- 529   2          {
- 530   3            GREEN = 0;
- 531   3            YELLOW = 1;
- 532   3            RED = 1;
- 533   3          }
- 534   2          else
- 535   2          {
- 536   3            if(lsb >= 0x34 && lsb <= 0x36)//4-6 yellow
- 537   3            {
- 538   4              GREEN = 1;
- 539   4              YELLOW = 0;
- 540   4              RED = 1;
- 541   4            }
- 542   3            else if(lsb >= 0x30 && lsb <= 0x33)//0-3 red
- 543   3            {
- 544   4              GREEN = 1;
- 545   4              YELLOW = 1;
- 546   4              RED = 0;
- 547   4            }
- 548   3            else//7-9 green
- 549   3            {
-C51 COMPILER V9.56.0.0   HOME_SECURITY_SYSTEM                                              12/10/2017 12:22:00 PAGE 10  
-
- 550   4              GREEN = 0;
- 551   4              YELLOW = 1;
- 552   4              RED = 1;
- 553   4            }
- 554   3          }
- 555   2          
- 556   2          //Keeps both numbers at 00
- 557   2          if (msb == 0x30 && lsb == 0x30)
- 558   2          {
- 559   3            break;
- 560   3          }
- 561   2          
- 562   2          lsb--; //Deccrementing least significant bit
- 563   2          
- 564   2          delay(); //1 second delay  
- 565   2        }
- 566   1      }
- 567          
- 568          void turnOnAlarm()
- 569          {
- 570   1      }
- 571          void turnOffAlarm()
- 572          {
- 573   1      }
- 574          void soundAlarm()
- 575          {
- 576   1      }
- 577          void resetTimer()
- 578          {
- 579   1      }
+ 498   1        
+ 499   1        LaserSwitch = 0;
+ 500   1      }
+ 501          void turnOnAlarm()
+ 502          {
+ 503   1        ALARM = 1;
+ 504   1      }
+ 505          void turnOffAlarm()
+ 506          {
+ 507   1        ALARM = 0;
+ 508   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1097    ----
-   CONSTANT SIZE    =     66    ----
+   CODE SIZE        =    894    ----
+   CONSTANT SIZE    =     49    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     11      16
+   DATA SIZE        =     11       9
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      5       1
 END OF MODULE INFORMATION.
