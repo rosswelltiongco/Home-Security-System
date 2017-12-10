@@ -31,7 +31,7 @@ sbit en = P3^7;
 
 //variables
 unsigned int countDownNum = 7;
-unsigned int prevTime;
+unsigned int prevTime = 7;
 
 unsigned int dir;//1 = cw, -1 = ccw
 bit update;//0 = stay same,1 = update
@@ -43,6 +43,7 @@ unsigned int delayVal = 0;
 bit ARMED = 0;//countdown finishes
 bit timer;
 bit Laser_Break = 0;
+bit write = 1;
 
 //Interrupt functions
 void timer1(void) interrupt 3{//50ms 
@@ -54,7 +55,14 @@ void timer1(void) interrupt 3{//50ms
 
 void breakBeam() interrupt 2//senses if beam is broken
 {
-	Laser_Break = 1;//flag to check if beam is broken
+	if(ARMED == 1)
+	{
+		Laser_Break = 1;//flag to check if beam is broken
+	}
+	else
+	{
+		Laser_Break = 0;
+	}
 }
 void delay()//delay 1 second
 {
@@ -105,7 +113,6 @@ void turnOffLaser();
 void countDownTimer(int num);
 void turnOnAlarm();
 void turnOffAlarm();
-void flashIntruder();
 void soundAlarm();
 void resetTimer();
 
@@ -133,7 +140,8 @@ enum states//5 states
 };
 enum states state = disarmed_state;
 /**************************************************************/
-void main(){
+void main()
+{
 	//Interrupt enable
 	EA = 1;
 	ET1 = 1;
@@ -170,13 +178,17 @@ void main(){
 			{
 				case disarmed_state:
 					//call function
-					disarmedState();
+					if(write == 1)//will only write to LCD once unless it needs to update
+					{
+						disarmedState();
+					}
+					write = 0;
 					//next state logic
-					if(update == 1)
+					if(update == 1)//update flag check whether rotary encoder interrupt has been called
 					{
 						state = update_timer_state;
 					}
-					if(ARM == 1)
+					if(ARM == 1)//switch is high
 					{
 						prevTime = countDownNum;//save previous value
 						state = countdown_state;
@@ -187,6 +199,7 @@ void main(){
 					updateTimerState();
 					//next state logic
 					state = disarmed_state;
+					write = 1;
 					break;
 				case armed_state:
 					//call function
@@ -195,27 +208,38 @@ void main(){
 					if(ARM == 0)
 					{
 						state = disarmed_state;
+						write = 1;
 					}
-					if(ARMED == 1 && Laser_Break == 1)
+					while(Laser_Break != 1)//stay in state until laser is broken
 					{
-						state = countdown_state;
+						//YELLOW = 0;
+						//do nothing until laser is broken
 					}
+					//YELLOW = 1;
+					state = countdown_state;
 					break;
 				case countdown_state:
 					//call function
 					countdownState();
 					//next state logic
-					if(ARM == 0)
+					if(ARM == 0)//switch is low
 					{
+						countDownNum = prevTime;
+						updateLCD(countDownNum);
 						state = disarmed_state;
+						write = 1;
 					}
-					if(ARMED == 0 && timer == 0)
+					if(ARMED == 0 && timer == 0)//not armed and timer is zero
 					{
+						updateLCD(countDownNum);
 						state = armed_state;
+						//timer = 1;
 					}
-					if(ARMED == 1 && timer == 0)//already armed and countdown is zero
+					if(ARMED == 1 && timer == 0 && Laser_Break == 1)//already armed and countdown is zero and laser is broken
 					{
+						//turnOnLaser();
 						state = intruder_state;
+						timer = 1;
 					}
 					break;
 				case intruder_state:
@@ -224,12 +248,16 @@ void main(){
 					//next state logic
 					if(ARM == 0)
 					{
+						countDownNum = prevTime;
+						updateLCD(countDownNum);//update LCD to original value
 						state = disarmed_state;
+						write = 1;
 					}
 					break;
 				default:
 					state = disarmed_state;
 			}
+			delayOneTen();
 		}
 		
 	
@@ -256,11 +284,12 @@ void disarmedState()
 	GREEN = 0;
 	RED = 1;
 	YELLOW = 1;
+	//laser break flag
+	Laser_Break = 0;
 	
 }
 void updateTimerState() //Fixme: No need for this state? Will wait for John's lecture
 {
-	//FIXME: will the encoder just take it to this state?
 	update = 0;//recognize that it is updating
 	countDownNum = countDownNum + dir;//inc or decrease, always
 	
@@ -274,24 +303,33 @@ void updateTimerState() //Fixme: No need for this state? Will wait for John's le
 		countDownNum = 7;
 	}
 	updateLCD(countDownNum);//updateLCD with new num
-	delayOneTen();
+	//delayOneTen();
 }
 void armedState()
 {
 	displayArmed();
 	turnOnLaser();
+	delay();//delay turning on laser to catch up with system
 	timer = 1;//not zero
 	ARMED = 1;//armed flag
-	updateLCD(prevTime);
+	//updateLCD(prevTime);
 }
 void countdownState()
 {
-	countDownNum = countDownNum - 1;//decrease counter
+	if(countDownNum > 0)
+	{
+		countDownNum = countDownNum - 1;//decrease counter
+	}
 	updateLCD(countDownNum);
 	//update timer flag
 	if(countDownNum == 0)
 	{
+		countDownNum = prevTime;
 		timer = 0;
+	}
+	else
+	{
+		timer = 1;
 	}
 	//update LEDs
 	if(countDownNum >= 7)//green
@@ -312,6 +350,7 @@ void countdownState()
 		YELLOW = 1;
 		RED = 0;
 	}
+	delay();
 	
 }
 void intruderState()
@@ -326,6 +365,7 @@ void intruderState()
 		LED1 = 1;
 		delayHalf();
 	}
+	//updateLCD(prevTime);
 }
 
 
@@ -356,7 +396,8 @@ void displayTime(unsigned int time)
 
 
 //setup LCD for required display
-void init_lcd(){
+void init_lcd()
+{
 	//all instructions here are commands, not data
 	
 	write_to_lcd(0x38,COMMAND);
@@ -368,7 +409,8 @@ void init_lcd(){
 	write_to_lcd(0x01,COMMAND);
 }
 
-void write_to_lcd(unsigned char value, bit mode){
+void write_to_lcd(unsigned char value, bit mode)
+{
 	lcdready();
 	ldata = value;
 	rs = mode; //1 for data, 0 for command
@@ -377,13 +419,15 @@ void write_to_lcd(unsigned char value, bit mode){
 	MSDelay(1);
 	en = 0;
 }
-void MSDelay(unsigned int itime){
+void MSDelay(unsigned int itime)
+{
 	unsigned i, j;
 	for(i=0;i<itime;i++)
 		for(j=0;j<1275;j++);
 
 }
-void lcdready(){
+void lcdready()
+{
 	busy = 1;
 	en = 1;
 	rs = 0;//command
@@ -409,7 +453,7 @@ void updateLCD(unsigned int time)//updates numbers
 
 void displayArmed()
 {
-	unsigned char code msg[]="ARMED";
+	unsigned char code msg[]="ARMED     ";
   unsigned char i=0;                                                                                 
 
 	//Writing to second line
@@ -420,7 +464,7 @@ void displayArmed()
 }
 void displayDisarmed()
 {
-	unsigned char code msg[]="DISARMED";
+	unsigned char code msg[]="DISARMED  ";
   unsigned char i=0;                                                                                      
 
 	//Writing to second line
@@ -525,9 +569,6 @@ void turnOnAlarm()
 {
 }
 void turnOffAlarm()
-{
-}
-void flashIntruder()
 {
 }
 void soundAlarm()
