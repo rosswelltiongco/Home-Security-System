@@ -211,7 +211,7 @@ void main()
 						state = disarmed_state;
 						write = 1;
 					}
-					while(Laser_Break != 1)//stay in state until laser is broken
+					while(Laser_Break != 1 && ARM == 1)//stay in state until laser is broken
 					{
 						//YELLOW = 0;
 						//do nothing until laser is broken
